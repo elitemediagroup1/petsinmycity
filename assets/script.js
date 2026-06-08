@@ -178,6 +178,7 @@
     }
     if (!window.__pimcHsPlannerModal) {
       window.__pimcHsPlannerModal = true;
+      var pimcModalShown = false;
       function pimcShowPlannerModal() {
         try {
           if (document.getElementById('pimc-planner-modal')) return;
@@ -210,13 +211,62 @@
           if (primaryBtn) { primaryBtn.focus(); }
         } catch (err) {}
       }
+      function pimcTriggerPlannerModal(source) {
+        if (pimcModalShown) return;
+        pimcModalShown = true;
+        try { console.log('[PIMC] HubSpot form submitted detected via', source, '- showing planner modal'); } catch (e) {}
+        pimcShowPlannerModal();
+      }
+      // 1) HubSpot postMessage detection (covers hsFormCallback + common submitted event names)
       window.addEventListener('message', function(ev){
         try {
-          if (ev && ev.data && ev.data.type === 'hsFormCallback' && ev.data.eventName === 'onFormSubmitted') {
-            pimcShowPlannerModal();
+          var data = ev && ev.data;
+          if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch (e) { return; }
+          }
+          if (!data || typeof data !== 'object') return;
+          var name = data.eventName || data.type || data.event || '';
+          var isHs = data.type === 'hsFormCallback' || data.type === 'hs-form-callback' || ('hsFormGuid' in data) || ('formGuid' in data) || ('conversionId' in data);
+          var isSubmitted = name === 'onFormSubmitted' || name === 'onFormSubmit' || name === 'onFormSubmittedAsync' || (typeof name === 'string' && name.toLowerCase().indexOf('submitt') !== -1);
+          // Debug: log any HubSpot-related message payload while we confirm the exact event
+          if (isHs || isSubmitted) { try { console.log('[PIMC] HubSpot message payload:', data); } catch (e) {} }
+          if ((isHs && isSubmitted) || (data.type === 'hsFormCallback' && isSubmitted)) {
+            pimcTriggerPlannerModal('postMessage:' + name);
           }
         } catch (e) {}
       });
+      // 2) Fallback: watch #pimc-email-capture for HubSpot's submitted / thank-you state
+      function pimcWatchThankYou() {
+        try {
+          var container = document.getElementById('pimc-email-capture');
+          if (!container || typeof MutationObserver === 'undefined') return;
+          function pimcCheckSubmitted() {
+            try {
+              if (pimcModalShown) return true;
+              if (container.querySelector('.submitted-message, .hs-submitted-message, .hs_submitted, [data-hs-forms-submitted], .hbspt-form .submitted-message')) {
+                pimcTriggerPlannerModal('mutationObserver:submitted-message');
+                return true;
+              }
+              var form = container.querySelector('form');
+              if (form && form.style && form.style.display === 'none' && container.textContent && container.textContent.length > 0) {
+                // form hidden after submit and replacement content present
+                pimcTriggerPlannerModal('mutationObserver:form-hidden');
+                return true;
+              }
+            } catch (e) {}
+            return false;
+          }
+          var observer = new MutationObserver(function(){
+            if (pimcCheckSubmitted() && observer) { observer.disconnect(); }
+          });
+          observer.observe(container, { childList: true, subtree: true, attributes: true });
+        } catch (e) {}
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', pimcWatchThankYou);
+      } else {
+        pimcWatchThankYou();
+      }
     }
   }
 
