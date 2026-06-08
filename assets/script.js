@@ -135,12 +135,12 @@
     if(si){si.addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();window.searchCity();}});}
   }
 
-    function injectEmailCapture() {
-  if (document.getElementById('pimc-email-capture')) return;
-  if (!document.getElementById('site-footer')) return;
-  var section = document.createElement('div');
-  section.id = 'pimc-email-capture';
-  section.innerHTML =
+    function injectEmailCapture(){
+    if (document.getElementById('pimc-email-capture')) return;
+    if (!document.getElementById('site-footer')) return;
+    var section = document.createElement('div');
+    section.id = 'pimc-email-capture';
+    section.innerHTML =
     '<div style="background:linear-gradient(135deg,#92400e 0%,#f59e0b 100%);padding:48px 24px;text-align:center">' +
     '<div style="max-width:560px;margin:0 auto">' +
     '<p style="font-family:Inter,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.8);margin-bottom:8px">' +
@@ -152,51 +152,24 @@
     '<p style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.9);margin-bottom:24px;line-height:1.6">' +
     'Join pet owners in your city who get the latest pet care tips, local resources, exclusive deals, and updates &#8212; all free, no spam.' +
     '</p>' +
-    '<button id="pimc-subscribe-btn" type="button" style="background:white;color:#92400e;font-family:Inter,sans-serif;font-weight:800;font-size:1rem;padding:14px 32px;border:none;border-radius:999px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.18);transition:transform 0.15s">&#10024; Subscribe</button>' +
-    '</div>' +
-    '</div>' +
-    '<div id="pimc-subscribe-modal" role="dialog" aria-modal="true" aria-labelledby="pimc-subscribe-title" style="display:none;position:fixed;inset:0;background:rgba(15,15,15,0.6);z-index:10000;align-items:center;justify-content:center;padding:24px;overflow-y:auto">' +
-    '<div id="pimc-subscribe-card" style="background:white;border-radius:18px;max-width:560px;width:100%;padding:28px 24px;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto">' +
-    '<button id="pimc-subscribe-close" type="button" aria-label="Close" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.6rem;color:#6b7280;cursor:pointer;line-height:1;padding:6px 10px">&times;</button>' +
-    '<p style="font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#92400e;margin-bottom:6px">&#128062; Join Our Community</p>' +
-    '<h3 id="pimc-subscribe-title" style="font-family:Inter,sans-serif;font-weight:800;font-size:1.35rem;color:#1a1a1a;margin-bottom:14px">Stay Connected with PetsInMyCity</h3>' +
-    '<div class="hs-form-frame" data-region="na2" data-form-id="65869a5b-9fb0-4041-8d5c-1db518fff832" data-portal-id="243957727"></div>' +
-    '<p style="font-family:Inter,sans-serif;font-size:0.7rem;color:#6b7280;line-height:1.6;text-align:left;margin:16px 0 0 0">' +
+    '<div class="hs-form-frame" data-region="na2" data-form-id="35e150eb-f091-4eeb-a747-ca51d4c9e76d" data-portal-id="243957727" style="margin:0 auto 8px;max-width:100%;"></div>' +
     'By providing your email address and/or phone number and checking the boxes above, you agree to receive email communications and/or text messages from PetsInMyCity.com, owned and operated by Elite Media Group LLC. Communications may include newsletters, pet care tips, local pet resources, exclusive deals, product recommendations, pet alerts, and other updates relevant to pet owners. Message frequency varies. Message and data rates may apply for text messages. You are not required to provide your phone number or agree to receive text messages as a condition of any purchase or service. You may unsubscribe from emails at any time by clicking the unsubscribe link in any email. You may opt out of text messages at any time by replying STOP. For help, reply HELP or contact us at hello@elitemediagroup.io. View our Privacy Policy at <a href="/privacy/" style="color:#92400e">petsinmycity.com/privacy</a>.' +
     '</p>' +
     '</div>' +
     '</div>';
-  var footer = document.getElementById('site-footer');
-  footer.parentNode.insertBefore(section, footer);
+    var footer = document.getElementById('site-footer');
+    footer.parentNode.insertBefore(section, footer);
 
-  // Modal open/close wiring + lazy-load HubSpot embed on first open
-  var modal = document.getElementById('pimc-subscribe-modal');
-  var openBtn = document.getElementById('pimc-subscribe-btn');
-  var closeBtn = document.getElementById('pimc-subscribe-close');
-  var hsLoaded = false;
-  function openModal() {
-    if (!modal) return;
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    if (!hsLoaded) {
-      hsLoaded = true;
+    // Load the official HubSpot embed script once
+    if (!document.querySelector('script[src="https://js-na2.hsforms.net/forms/embed/243957727.js"]')) {
       var hsScript = document.createElement('script');
-      hsScript.src = "https://js-na2.hsforms.net/forms/embed/243957727.js";
+      hsScript.src = 'https://js-na2.hsforms.net/forms/embed/243957727.js';
       hsScript.defer = true;
       document.head.appendChild(hsScript);
     }
   }
-  function closeModal() {
-    if (!modal) return;
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-  if (openBtn) openBtn.addEventListener('click', openModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  if (modal) modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal && modal.style.display === 'flex') closeModal(); });
-}
-    function injectTopBanner() {
+
+      function injectTopBanner() {
     if (document.getElementById('pimc-top-banner')) return;
     if (sessionStorage.getItem('pimc-banner-dismissed')) return;
     var banner = document.createElement('div');
