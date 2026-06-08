@@ -147,11 +147,18 @@
     '&#128062; Join Our Community' +
     '</p>' +
     '<h2 style="font-family:Inter,sans-serif;font-weight:800;font-size:1.6rem;color:white;margin-bottom:8px">' +
-    'Stay Connected with PetsInMyCity' +
+    'Get the Free Pet Emergency Checklist + Weekly Pet Tips' +
     '</h2>' +
     '<p style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.9);margin-bottom:24px;line-height:1.6">' +
-    'Join pet owners in your city who get the latest pet care tips, local resources, exclusive deals, and updates &#8212; all free, no spam.' +
+    'Join thousands of pet parents and receive our printable Pet Emergency Checklist, pet safety alerts, recall notices, local pet resources, and expert tips delivered straight to your inbox.' +
     '</p>' +
+    '<ul style="list-style:none;padding:0;margin:0 auto 20px;max-width:420px;text-align:left;">' +
+    '<li style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.95);margin-bottom:8px;">\u2705 Free Printable Pet Emergency Checklist</li>' +
+    '<li style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.95);margin-bottom:8px;">\u2705 Pet Food & Product Recall Alerts</li>' +
+    '<li style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.95);margin-bottom:8px;">\u2705 Seasonal Safety Tips</li>' +
+    '<li style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.95);margin-bottom:8px;">\u2705 Local Pet-Friendly Resources</li>' +
+    '<li style="font-family:Inter,sans-serif;font-size:0.95rem;color:rgba(255,255,255,0.95);margin-bottom:8px;">\u2705 Exclusive Pet Product Deals</li>' +
+    '</ul>' +
     '<div class="hs-form-frame" data-region="na2" data-form-id="35e150eb-f091-4eeb-a747-ca51d4c9e76d" data-portal-id="243957727" style="margin:0 auto 8px;max-width:100%;"></div>' +
     'By providing your email address and/or phone number and checking the boxes above, you agree to receive email communications and/or text messages from PetsInMyCity.com, owned and operated by Elite Media Group LLC. Communications may include newsletters, pet care tips, local pet resources, exclusive deals, product recommendations, pet alerts, and other updates relevant to pet owners. Message frequency varies. Message and data rates may apply for text messages. You are not required to provide your phone number or agree to receive text messages as a condition of any purchase or service. You may unsubscribe from emails at any time by clicking the unsubscribe link in any email. You may opt out of text messages at any time by replying STOP. For help, reply HELP or contact us at hello@elitemediagroup.io. View our Privacy Policy at <a href="/privacy/" style="color:#92400e">petsinmycity.com/privacy</a>.' +
     '</p>' +
