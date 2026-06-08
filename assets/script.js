@@ -176,12 +176,44 @@
       hsScript.defer = true;
       document.head.appendChild(hsScript);
     }
-    if (!window.__pimcHsRedirect) {
-      window.__pimcHsRedirect = true;
+    if (!window.__pimcHsPlannerModal) {
+      window.__pimcHsPlannerModal = true;
+      function pimcShowPlannerModal() {
+        try {
+          if (document.getElementById('pimc-planner-modal')) return;
+          var overlay = document.createElement('div');
+          overlay.id = 'pimc-planner-modal';
+          overlay.setAttribute('role', 'dialog');
+          overlay.setAttribute('aria-modal', 'true');
+          overlay.setAttribute('aria-labelledby', 'pimc-planner-modal-title');
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(26,26,26,0.55);font-family:Inter,sans-serif';
+          var card = document.createElement('div');
+          card.style.cssText = 'background:#fff;max-width:420px;width:100%;border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.25);position:relative;border-top:6px solid #f59e0b';
+          card.innerHTML =
+            '<button type="button" id="pimc-planner-modal-close" aria-label="Close" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.4rem;line-height:1;color:#9ca3af;cursor:pointer;padding:4px 8px">&#10005;</button>' +
+            '<h2 id="pimc-planner-modal-title" style="font-family:Inter,sans-serif;font-weight:800;font-size:1.35rem;color:#1a1a1a;margin:4px 0 12px">Your Pet Emergency Planner Is Ready &#128062;</h2>' +
+            '<p style="font-family:Inter,sans-serif;font-size:0.98rem;color:#4b5563;line-height:1.6;margin:0 0 22px">Thanks for joining PetsInMyCity. Click below to open your free Pet Emergency Planner.</p>' +
+            '<a href="/pet-emergency-planner" id="pimc-planner-modal-btn" style="display:inline-block;background:#f59e0b;color:#fff;font-family:Inter,sans-serif;font-weight:700;font-size:1rem;padding:14px 32px;border-radius:10px;text-decoration:none;box-shadow:0 6px 16px rgba(245,158,11,0.35)">Open My Free Planner</a>' +
+            '<div style="margin-top:16px"><a href="/pet-emergency-planner" target="_blank" rel="noopener" style="font-family:Inter,sans-serif;font-size:0.82rem;color:#92400e;text-decoration:underline">Open planner in a new tab</a></div>';
+          overlay.appendChild(card);
+          function pimcCloseModal() {
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            document.removeEventListener('keydown', onKey);
+          }
+          function onKey(e) { if (e.key === 'Escape') pimcCloseModal(); }
+          overlay.addEventListener('click', function(e) { if (e.target === overlay) pimcCloseModal(); });
+          document.addEventListener('keydown', onKey);
+          document.body.appendChild(overlay);
+          var closeBtn = document.getElementById('pimc-planner-modal-close');
+          if (closeBtn) { closeBtn.addEventListener('click', pimcCloseModal); }
+          var primaryBtn = document.getElementById('pimc-planner-modal-btn');
+          if (primaryBtn) { primaryBtn.focus(); }
+        } catch (err) {}
+      }
       window.addEventListener('message', function(ev){
         try {
           if (ev && ev.data && ev.data.type === 'hsFormCallback' && ev.data.eventName === 'onFormSubmitted') {
-            window.location.href = '/pet-emergency-planner';
+            pimcShowPlannerModal();
           }
         } catch (e) {}
       });
