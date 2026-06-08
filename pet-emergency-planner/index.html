@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet Emergency Planner — Free Printable Pet Emergency Checklist | PetsInMyCity</title>
+<meta name="description" content="Create a free, personalized pet emergency planner and printable checklist. Store vet info, emergency contacts, medications, and a pet evacuation checklist for dog and cat disaster preparedness.">
+<meta name="keywords" content="pet emergency checklist, pet emergency planner, dog emergency preparedness, cat emergency preparedness, pet evacuation checklist, pet disaster planning">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://petsinmycity.com/pet-emergency-planner/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PetsInMyCity">
+<meta property="og:url" content="https://petsinmycity.com/pet-emergency-planner/">
+<meta property="og:title" content="Pet Emergency Planner — Free Printable Pet Emergency Checklist">
+<meta property="og:description" content="Create, save, and print a personalized emergency plan for your pet in minutes. Free pet emergency planner and evacuation checklist.">
+<meta property="og:image" content="https://petsinmycity.com/assets/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@petsinmycity">
+<meta name="twitter:title" content="Pet Emergency Planner — PetsInMyCity">
+<meta name="twitter:description" content="Create, save, and print a personalized emergency plan for your pet in minutes.">
+<meta name="twitter:image" content="https://petsinmycity.com/assets/logo.png">
+<meta name="theme-color" content="#F59E0B">
+<link rel="apple-touch-icon" href="/assets/logo.png">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+  .pep-wrap{max-width:860px;margin:0 auto;padding:0 20px;}
+  .pep-section{background:#fff;border:1px solid #fde68a;border-radius:14px;padding:24px;margin:0 0 24px;box-shadow:0 6px 20px rgba(146,64,14,0.06);}
+  .pep-section h2{font-family:Inter,Nunito,sans-serif;font-size:1.25rem;font-weight:800;color:#92400e;margin:0 0 16px;display:flex;align-items:center;gap:8px;}
+  .pep-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media (max-width:600px){.pep-grid{grid-template-columns:1fr;}}
+  .pep-field{display:flex;flex-direction:column;}
+  .pep-field label{font-family:Inter,sans-serif;font-size:0.82rem;font-weight:700;color:#4b5563;margin-bottom:6px;}
+  .pep-field input,.pep-field textarea,.pep-field select{font-family:Inter,sans-serif;font-size:0.95rem;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;width:100%;box-sizing:border-box;background:#fff;}
+  .pep-field input:focus,.pep-field textarea:focus,.pep-field select:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.15);}
+  .pep-field textarea{min-height:70px;resize:vertical;}
+  .pep-full{grid-column:1 / -1;}
+  .pep-check-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media (max-width:600px){.pep-check-list{grid-template-columns:1fr;}}
+  .pep-check-list li{display:flex;align-items:center;gap:10px;font-family:Inter,sans-serif;font-size:0.95rem;color:#374151;}
+  .pep-check-list input[type=checkbox]{width:18px;height:18px;accent-color:#f59e0b;}
+  .pep-emergency-num{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3f4f6;font-family:Inter,sans-serif;}
+  .pep-emergency-num:last-child{border-bottom:none;}
+  .pep-emergency-num .num{font-weight:800;color:#92400e;}
+  .pep-disclaimer{font-family:Inter,sans-serif;font-size:0.82rem;color:#6b7280;margin-top:12px;font-style:italic;}
+  .pep-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin:8px 0 32px;}
+  .pep-btn{font-family:Inter,sans-serif;font-weight:800;font-size:1rem;padding:14px 30px;border-radius:10px;border:none;cursor:pointer;text-decoration:none;display:inline-block;}
+  .pep-btn-primary{background:#f59e0b;color:#fff;}
+  .pep-btn-secondary{background:#fff;color:#92400e;border:2px solid #f59e0b;}
+  .pep-save-status{text-align:center;font-family:Inter,sans-serif;font-size:0.85rem;color:#059669;min-height:20px;margin-bottom:16px;}
+  .pep-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:768px){.pep-cards{grid-template-columns:1fr;}}
+  .pep-card{border:1px solid #e5e7eb;border-radius:12px;padding:18px;background:#fff;}
+  .pep-card .ph{background:#f3f4f6;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-family:Inter,sans-serif;font-size:0.85rem;margin-bottom:12px;text-align:center;}
+  .pep-card h3{font-family:Inter,sans-serif;font-size:1rem;font-weight:700;color:#1a1a1a;margin:0 0 6px;}
+  .pep-card p{font-family:Inter,sans-serif;font-size:0.88rem;color:#6b7280;margin:0;}
+  .pep-affiliate-note{font-family:Inter,sans-serif;font-size:0.78rem;color:#9ca3af;text-align:center;margin-top:14px;}
+  @media print{
+    #site-header,#site-footer,#pimc-top-banner,#pimc-email-capture,.pep-actions,.pep-monetize,.pep-related,.pep-hero-cta,#lucy-fab,.lucy-fab{display:none !important;}
+    .pep-section{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid;}
+    body{background:#fff;}
+    .pep-print-header{display:block !important;}
+  }
+  .pep-print-header{display:none;text-align:center;margin-bottom:20px;}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PetsInMyCity Pet Emergency Planner","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Create, save, and print a personalized pet emergency plan and evacuation checklist."}</script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<section class="pimc-hero">
+  <div class="container">
+    <p style="font-family:Inter,sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#92400e;margin-bottom:10px;">&#128203; Free PetsInMyCity Resource</p>
+    <h1>Pet Emergency <span class="highlight">Planner</span></h1>
+    <p class="hero-sub">Create a personalized emergency preparedness plan for your pet in minutes. Save it, print it, and keep it ready when you need it most.</p>
+    <div class="pep-hero-cta" style="margin-top:18px;">
+      <a href="#pep-form" class="pep-btn pep-btn-primary">Start My Plan &#8594;</a>
+    </div>
+  </div>
+</section>
+
+<div class="pep-print-header"><strong style="font-size:1.3rem;color:#92400e;">PetsInMyCity — Pet Emergency Plan</strong></div>
+
+<section style="padding:32px 0 8px;" id="pep-form">
+  <div class="pep-wrap">
+    <div class="pep-save-status" id="pep-save-status"></div>
+    <div class="pep-section">
+      <h2>&#128062; Section 1 — Pet Information</h2>
+      <div class="pep-grid">
+      <div class="pep-field"><label for="pet-name">Pet Name</label><input type="text" id="pet-name" data-pep></div>
+      <div class="pep-field"><label for="pet-species">Species</label><select id="pet-species" data-pep><option value="">Select...</option><option>Dog</option><option>Cat</option><option>Bird</option><option>Rabbit</option><option>Reptile</option><option>Other</option></select></div>
+      <div class="pep-field"><label for="pet-breed">Breed</label><input type="text" id="pet-breed" data-pep></div>
+      <div class="pep-field"><label for="pet-age">Age</label><input type="text" id="pet-age" data-pep></div>
+      <div class="pep-field"><label for="pet-weight">Weight</label><input type="text" id="pet-weight" data-pep></div>
+      <div class="pep-field"><label for="pet-color">Color/Markings</label><input type="text" id="pet-color" data-pep></div>
+      <div class="pep-field"><label for="pet-microchip">Microchip Number</label><input type="text" id="pet-microchip" data-pep></div>
+      <div class="pep-field"><label for="pet-rabies">Rabies Tag Number</label><input type="text" id="pet-rabies" data-pep></div>
+      </div>
+    </div>
+    <div class="pep-section">
+      <h2>&#127973; Section 2 — Veterinarian Information</h2>
+      <div class="pep-grid">
+      <div class="pep-field"><label for="vet-name">Veterinarian Name</label><input type="text" id="vet-name" data-pep></div>
+      <div class="pep-field"><label for="vet-clinic">Clinic Name</label><input type="text" id="vet-clinic" data-pep></div>
+      <div class="pep-field"><label for="vet-phone">Phone Number</label><input type="tel" id="vet-phone" data-pep></div>
+      <div class="pep-field pep-full"><label for="vet-address">Address</label><input type="text" id="vet-address" data-pep></div>
+      </div>
+    </div>
+    <div class="pep-section">
+      <h2>&#128222; Section 3 — Emergency Contacts</h2>
+      <div class="pep-grid">
+      <div class="pep-field pep-full"><label for="ec-hospital">Emergency Veterinary Hospital</label><input type="text" id="ec-hospital" data-pep></div>
+      <div class="pep-field"><label for="ec-phone">Emergency Phone</label><input type="tel" id="ec-phone" data-pep></div>
+      <div class="pep-field"><label for="ec-sitter">Pet Sitter</label><input type="text" id="ec-sitter" data-pep></div>
+      <div class="pep-field"><label for="ec-backup">Family/Friend Backup Contact</label><input type="text" id="ec-backup" data-pep></div>
+      <div class="pep-field"><label for="ec-contact-phone">Contact Phone</label><input type="tel" id="ec-contact-phone" data-pep></div>
+      </div>
+    </div>
+    <div class="pep-section">
+      <h2>&#128138; Section 4 — Medical Information</h2>
+      <div class="pep-grid">
+      <div class="pep-field pep-full"><label for="med-current">Current Medications</label><textarea id="med-current" data-pep></textarea></div>
+      <div class="pep-field pep-full"><label for="med-dosages">Dosages</label><textarea id="med-dosages" data-pep></textarea></div>
+      <div class="pep-field pep-full"><label for="med-allergies">Allergies</label><textarea id="med-allergies" data-pep></textarea></div>
+      <div class="pep-field pep-full"><label for="med-conditions">Medical Conditions</label><textarea id="med-conditions" data-pep></textarea></div>
+      <div class="pep-field pep-full"><label for="med-special">Special Instructions</label><textarea id="med-special" data-pep></textarea></div>
+      </div>
+    </div>
+    <div class="pep-section">
+      <h2>&#127811; Section 5 — Emergency Evacuation Checklist</h2>
+      <ul class="pep-check-list">
+        <li><input type="checkbox" id="evac-0" data-pep-check><label for="evac-0" style="cursor:pointer;">Food packed</label></li>
+        <li><input type="checkbox" id="evac-1" data-pep-check><label for="evac-1" style="cursor:pointer;">Water packed</label></li>
+        <li><input type="checkbox" id="evac-2" data-pep-check><label for="evac-2" style="cursor:pointer;">Medications packed</label></li>
+        <li><input type="checkbox" id="evac-3" data-pep-check><label for="evac-3" style="cursor:pointer;">Medical records packed</label></li>
+        <li><input type="checkbox" id="evac-4" data-pep-check><label for="evac-4" style="cursor:pointer;">Leash packed</label></li>
+        <li><input type="checkbox" id="evac-5" data-pep-check><label for="evac-5" style="cursor:pointer;">Harness packed</label></li>
+        <li><input type="checkbox" id="evac-6" data-pep-check><label for="evac-6" style="cursor:pointer;">Carrier packed</label></li>
+        <li><input type="checkbox" id="evac-7" data-pep-check><label for="evac-7" style="cursor:pointer;">Comfort toy packed</label></li>
+        <li><input type="checkbox" id="evac-8" data-pep-check><label for="evac-8" style="cursor:pointer;">Waste supplies packed</label></li>
+        <li><input type="checkbox" id="evac-9" data-pep-check><label for="evac-9" style="cursor:pointer;">First aid kit packed</label></li>
+      </ul>
+    </div>
+    <div class="pep-section">
+      <h2>&#128680; Section 6 — Important Emergency Numbers</h2>
+      <div class="pep-emergency-num"><span>ASPCA Animal Poison Control</span><span class="num">888-426-4435</span></div>
+      <div class="pep-emergency-num"><span>Pet Poison Helpline</span><span class="num">855-764-7661</span></div>
+      <p class="pep-disclaimer">Please verify these numbers before use, as phone numbers and services may change. In a life-threatening emergency, contact your veterinarian or nearest emergency animal hospital immediately.</p>
+    </div>
+    <div class="pep-actions">
+      <button type="button" class="pep-btn pep-btn-primary" id="pep-print">&#128424; Print Planner</button>
+      <button type="button" class="pep-btn pep-btn-secondary" id="pep-save">&#128190; Save Planner</button>
+    </div>
+  </div>
+</section>
+
+<section class="pep-monetize" style="padding:24px 0;">
+  <div class="pep-wrap">
+    <h2 style="font-family:Inter,sans-serif;font-size:1.4rem;font-weight:800;color:#1a1a1a;text-align:center;margin-bottom:20px;">Recommended Emergency Supplies</h2>
+    <div class="pep-cards">
+      <div class="pep-card"><div class="ph">Product image placeholder</div><h3>Pet First Aid Kit</h3><p>Placeholder card. <!-- TODO: Chewy affiliate product link --></p></div>
+      <div class="pep-card"><div class="ph">Product image placeholder</div><h3>Pet Carrier / Crate</h3><p>Placeholder card. <!-- TODO: Amazon affiliate product link --></p></div>
+      <div class="pep-card"><div class="ph">Product image placeholder</div><h3>Emergency Food & Water Supply</h3><p>Placeholder card. <!-- TODO: Chewy / Amazon affiliate product link --></p></div>
+    </div>
+    <p class="pep-affiliate-note">Affiliate product recommendations coming soon. <!-- AFFILIATE PLACEHOLDER: Chewy + Amazon products to be added here --></p>
+  </div>
+</section>
+
+<section class="pep-related" style="padding:24px 0 40px;">
+  <div class="pep-wrap">
+    <h2 style="font-family:Inter,sans-serif;font-size:1.4rem;font-weight:800;color:#1a1a1a;text-align:center;margin-bottom:20px;">Helpful Pet Safety Resources</h2>
+    <div class="pep-cards">
+      <a href="/tools/emergency-finder/" class="pep-card" style="text-decoration:none;"><h3>&#128680; Emergency Vet Finder</h3><p>Find the nearest emergency veterinary hospital fast.</p></a>
+      <a href="/tools/symptom-checker/" class="pep-card" style="text-decoration:none;"><h3>&#129385; Pet Symptom Checker</h3><p>Check your pet&#8217;s symptoms and know when to act.</p></a>
+      <a href="/tools/lost-pet/" class="pep-card" style="text-decoration:none;"><h3>&#128062; Lost Pet Assistant</h3><p>A step-by-step plan if your pet goes missing.</p></a>
+      <a href="/find-a-vet/" class="pep-card" style="text-decoration:none;"><h3>&#127973; Find a Vet</h3><p>Locate trusted veterinarians in your city.</p></a>
+      <a href="/dog-care/" class="pep-card" style="text-decoration:none;"><h3>&#128021; Dog Care Guides</h3><p>Everyday care tips to keep your dog healthy.</p></a>
+      <a href="/adoption/" class="pep-card" style="text-decoration:none;"><h3>&#10084;&#65039; Pet Adoption</h3><p>Find adoptable pets and adoption resources.</p></a>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="/assets/script.js" defer></script>
+<script>
+(function(){
+  var KEY = "pimc-pet-emergency-planner";
+  var statusEl = document.getElementById("pep-save-status");
+  function getFields(){ return document.querySelectorAll("[data-pep]"); }
+  function getChecks(){ return document.querySelectorAll("[data-pep-check]"); }
+  function save(){
+    var data = { fields:{}, checks:{} };
+    getFields().forEach(function(el){ data.fields[el.id] = el.value; });
+    getChecks().forEach(function(el){ data.checks[el.id] = el.checked; });
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      flash("\u2705 Your plan has been saved on this device.");
+    } catch(e){ flash("\u26a0\ufe0f Could not save \u2014 storage unavailable."); }
+  }
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return;
+      var data = JSON.parse(raw);
+      getFields().forEach(function(el){ if(data.fields && data.fields[el.id]!=null) el.value = data.fields[el.id]; });
+      getChecks().forEach(function(el){ if(data.checks && data.checks[el.id]!=null) el.checked = data.checks[el.id]; });
+      flash("\u2139\ufe0f Loaded your previously saved plan.");
+    } catch(e){}
+  }
+  function flash(msg){ if(!statusEl) return; statusEl.textContent = msg; setTimeout(function(){ statusEl.textContent=""; }, 4000); }
+  function printPlan(){
+    getFields().forEach(function(el){ if(el.tagName==="TEXTAREA"||el.tagName==="INPUT"){ el.setAttribute("value", el.value); } });
+    window.print();
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    load();
+    var sBtn = document.getElementById("pep-save");
+    var pBtn = document.getElementById("pep-print");
+    if(sBtn) sBtn.addEventListener("click", save);
+    if(pBtn) pBtn.addEventListener("click", printPlan);
+    // autosave on input
+    document.querySelectorAll("[data-pep],[data-pep-check]").forEach(function(el){ el.addEventListener("change", function(){ try{ save(); }catch(e){} }); });
+  });
+})();
+</script>
+</body>
+</html>
