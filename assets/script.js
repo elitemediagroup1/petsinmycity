@@ -176,6 +176,16 @@
       hsScript.defer = true;
       document.head.appendChild(hsScript);
     }
+    if (!window.__pimcHsRedirect) {
+      window.__pimcHsRedirect = true;
+      window.addEventListener('message', function(ev){
+        try {
+          if (ev && ev.data && ev.data.type === 'hsFormCallback' && ev.data.eventName === 'onFormSubmitted') {
+            window.location.href = '/pet-emergency-planner';
+          }
+        } catch (e) {}
+      });
+    }
   }
 
       function injectTopBanner() {
@@ -185,7 +195,7 @@
     banner.id = 'pimc-top-banner';
     banner.innerHTML =
       '<div style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:0.85rem;font-weight:600;padding:10px 48px 10px 24px;text-align:center;position:relative;z-index:9998">' +
-      '&#128062; Free Pet Emergency Planner: create, save, and print your pet&#8217;s emergency plan &#8212; ' +
+      '&#128062; Free Pet Emergency Planner &#8212; Create, Save &amp; Print Your Pet&#8217;s Emergency Plan ' +
       '<a href="/pet-emergency-planner" style="color:white;text-decoration:underline;font-weight:700">Get yours free &#8594;</a>' +
       '<button onclick="document.getElementById(\'pimc-top-banner\').style.display=\'none\';sessionStorage.setItem(\'pimc-banner-dismissed\',\'1\')" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:white;font-size:1.1rem;cursor:pointer;line-height:1;opacity:0.8;padding:4px 8px" aria-label="Dismiss">&#10005;</button>' +
       '</div>';
