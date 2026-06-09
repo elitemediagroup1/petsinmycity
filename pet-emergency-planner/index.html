@@ -21,7 +21,7 @@
 <meta name="twitter:image" content="https://petsinmycity.com/assets/logo.png">
 <meta name="theme-color" content="#F59E0B">
 <link rel="apple-touch-icon" href="/assets/logo.png">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css"><!-- Google tag (gtag.js) - GA4 G-YVNBXJBZZ3 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-YVNBXJBZZ3"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-YVNBXJBZZ3');window.addEventListener('load',function(){try{if(window.pimcTrack){window.pimcTrack('planner_open',{tool_name:'pet_emergency_planner',page_path:location.pathname});}else{gtag('event','planner_open',{tool_name:'pet_emergency_planner'});}}catch(e){}});</script><!-- Google tag (gtag.js) - GA4 G-YVNBXJBZZ3 -->
 <style>
   .pep-wrap{max-width:860px;margin:0 auto;padding:0 20px;}
   .pep-section{background:#fff;border:1px solid #fde68a;border-radius:14px;padding:24px;margin:0 0 24px;box-shadow:0 6px 20px rgba(146,64,14,0.06);}
@@ -188,7 +188,7 @@
   var statusEl = document.getElementById("pep-save-status");
   function getFields(){ return document.querySelectorAll("[data-pep]"); }
   function getChecks(){ return document.querySelectorAll("[data-pep-check]"); }
-  function save(){
+  function save(){ try{ if(window.pimcTrack){ window.pimcTrack('planner_save', { tool_name: 'pet_emergency_planner', page_path: location.pathname }); } }catch(e){}
     var data = { fields:{}, checks:{} };
     getFields().forEach(function(el){ data.fields[el.id] = el.value; });
     getChecks().forEach(function(el){ data.checks[el.id] = el.checked; });
