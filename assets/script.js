@@ -323,3 +323,5 @@ window.toggleMobileSection = function toggleMobileSection(id) {
   });
 };
 
+
+/* ===== PetsInMyCity Standardized Analytics Framework v1 ===== */(function(){
