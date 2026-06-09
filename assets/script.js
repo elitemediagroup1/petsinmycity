@@ -325,3 +325,7 @@ window.toggleMobileSection = function toggleMobileSection(id) {
 
 
 
+
+
+/* Load standardized analytics framework */
+(function(){ try{ var s = document.createElement('script'); s.src = '/assets/analytics.js'; s.defer = true; (document.head || document.documentElement).appendChild(s); }catch(e){} })();
