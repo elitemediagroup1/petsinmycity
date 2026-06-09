@@ -208,7 +208,7 @@
     } catch(e){}
   }
   function flash(msg){ if(!statusEl) return; statusEl.textContent = msg; setTimeout(function(){ statusEl.textContent=""; }, 4000); }
-  function printPlan(){
+  function printPlan(){ try{ if(window.pimcTrack){ window.pimcTrack('planner_print', { tool_name: 'pet_emergency_planner', page_path: location.pathname }); } }catch(e){}
     getFields().forEach(function(el){ if(el.tagName==="TEXTAREA"||el.tagName==="INPUT"){ el.setAttribute("value", el.value); } });
     window.print();
   }
