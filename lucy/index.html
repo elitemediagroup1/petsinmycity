@@ -164,14 +164,14 @@ function showTyping(){var box=document.getElementById('lucy-full-messages');var 
 function hideTyping(){var t=document.getElementById('lucy-typing');if(t)t.remove()}
 // ---- Local-service search (reuses /.netlify/functions/places-search) ----
 var LUCY_LOCAL_CATEGORIES=[
-{cat:'emergency vet',type:'emergency vet',emergency:true,re:/\b(emergency\s*vet|emergency\s*veterinar|er\s*vet|24[\s-]*hour\s*vet|urgent\s*(care\s*)?vet|animal\s*er)\b/i},
-{cat:'veterinarian',type:'veterinarian',re:/\b(vet|vets|veterinar|veterinarian|animal\s*hospital|animal\s*clinic)\b/i},
-{cat:'pet groomer',type:'pet groomer',re:/\b(groomer|grooming|groom)\b/i},
-{cat:'dog boarding',type:'dog boarding',re:/\b(boarding|board\s*my|kennel|kennels|overnight\s*(care|stay)|pet\s*hotel|doggy\s*daycare|dog\s*daycare|daycare)\b/i},
-{cat:'dog trainer',type:'dog trainer',re:/\b(trainer|training|obedience|puppy\s*class)\b/i},
-{cat:'dog park',type:'dog park',re:/\b(dog\s*park|dog\s*parks|off[\s-]*leash)\b/i},
-{cat:'animal shelter',type:'animal shelter',re:/\b(shelter|shelters|rescue|rescues|humane\s*society|adopt\b|adoption\s*center|spca)\b/i},
-{cat:'pet store',type:'pet store',re:/\b(pet\s*store|pet\s*shop|pet\s*supply|pet\s*supplies|pet\s*food\s*store)\b/i}
+{cat:'emergency vet',type:'emergency vet',emergency:true,re:/\b(emergency\s*vet|emergency\s*veterinar|er\s*vet|24[\s-]*hour\s*vet|urgent\s*(care\s*)?vet|animal\s*er)/i},
+{cat:'veterinarian',type:'veterinarian',re:/\b(vet|veterinar|animal\s*hospital|animal\s*clinic)/i},
+{cat:'pet groomer',type:'pet groomer',re:/\b(groomer|grooming|groom)/i},
+{cat:'dog boarding',type:'dog boarding',re:/\b(boarding|board\s*my|kennel|overnight\s*(care|stay)|pet\s*hotel|doggy\s*daycare|dog\s*daycare|daycare)/i},
+{cat:'dog trainer',type:'dog trainer',re:/\b(trainer|training|obedience|puppy\s*class)/i},
+{cat:'dog park',type:'dog park',re:/\b(dog\s*park|off[\s-]*leash)/i},
+{cat:'animal shelter',type:'animal shelter',re:/\b(shelter|rescue|humane\s*society|adopt|adoption\s*center|spca)/i},
+{cat:'pet store',type:'pet store',re:/\b(pet\s*store|pet\s*shop|pet\s*supply|pet\s*supplies|pet\s*food\s*store)/i}
 ];
 function detectLocalCategory(text){for(var i=0;i<LUCY_LOCAL_CATEGORIES.length;i++){if(LUCY_LOCAL_CATEGORIES[i].re.test(text))return LUCY_LOCAL_CATEGORIES[i];}return null;}
 function extractZip(text){var m=text.match(/\b(\d{5})\b/);return m?m[1]:null;}
