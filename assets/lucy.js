@@ -6,6 +6,7 @@
 
   var LUCY_AVATAR = 'https://media1.tenor.com/m/W_U_UgAgw3oAAAAC/doggy-golde.gif';
   var ENDPOINT = '/.netlify/functions/lucy-chat';
+  var PLACES_ENDPOINT = '/.netlify/functions/places-search';
 
   var STYLES = [
     '#lucy-widget-btn{position:fixed;bottom:24px;right:24px;z-index:9999;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:Inter,system-ui,sans-serif}',
@@ -88,6 +89,7 @@
   var conversation = [];
   var started = false;
   var sending = false;
+  var pendingLocalSearch = null;
 
   function escapeHTML(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -111,6 +113,143 @@
   window.__lucyTrackLink = function (url) {
     try { if (window.gtag) window.gtag('event', 'lucy_link_clicked', { url: url }); } catch (e) {}
   };
+
+  // ---- Local-service search (reuses /.netlify/functions/places-search) ----
+  var LUCY_LOCAL_CATEGORIES = [
+    { cat: 'emergency vet', type: 'emergency vet', emergency: true, re: /\b(emergency\s*vet|emergency\s*veterinar|er\s*vet|24[\s-]*hour\s*vet|urgent\s*(care\s*)?vet|animal\s*er)\b/i },
+    { cat: 'veterinarian', type: 'veterinarian', re: /\b(vet|vets|veterinar|veterinarian|animal\s*hospital|animal\s*clinic)\b/i },
+    { cat: 'pet groomer', type: 'pet groomer', re: /\b(groomer|grooming|groom)\b/i },
+    { cat: 'dog boarding', type: 'dog boarding', re: /\b(boarding|board\s*my|kennel|kennels|overnight\s*(care|stay)|pet\s*hotel|doggy\s*daycare|dog\s*daycare|daycare)\b/i },
+    { cat: 'dog trainer', type: 'dog trainer', re: /\b(trainer|training|obedience|puppy\s*class)\b/i },
+    { cat: 'dog park', type: 'dog park', re: /\b(dog\s*park|dog\s*parks|off[\s-]*leash)\b/i },
+    { cat: 'animal shelter', type: 'animal shelter', re: /\b(shelter|shelters|rescue|rescues|humane\s*society|adopt\b|adoption\s*center|spca)\b/i },
+    { cat: 'pet store', type: 'pet store', re: /\b(pet\s*store|pet\s*shop|pet\s*supply|pet\s*supplies|pet\s*food\s*store)\b/i }
+  ];
+
+  function detectLocalCategory(text) {
+    for (var i = 0; i < LUCY_LOCAL_CATEGORIES.length; i++) {
+      if (LUCY_LOCAL_CATEGORIES[i].re.test(text)) return LUCY_LOCAL_CATEGORIES[i];
+    }
+    return null;
+  }
+  function extractZip(text) {
+    var m = text.match(/\b(\d{5})\b/);
+    return m ? m[1] : null;
+  }
+  function extractCity(text) {
+    var m = text.match(/\bnear\s+([A-Za-z][A-Za-z.\-' ]{1,40}?)(?:[?!.,]|$)/i);
+    if (m && m[1]) {
+      var c = m[1].trim();
+      if (!/\b(me|here|my\s*area|my\s*location|us|you)\b/i.test(c)) return c;
+    }
+    m = text.match(/\bin\s+([A-Za-z][A-Za-z.\-' ]{1,40}?)(?:[?!.,]|$)/i);
+    if (m && m[1]) {
+      var c2 = m[1].trim();
+      if (!/\b(me|here|my\s*area|my\s*location|the\s*area)\b/i.test(c2)) return c2;
+    }
+    return null;
+  }
+  function trackLocalSearch(category, locationKey, locationVal, count) {
+    try {
+      if (window.gtag) {
+        var base = { search_category: category, result_count: count };
+        base[locationKey] = locationVal;
+        window.gtag('event', 'lucy_local_search', base);
+        window.gtag('event', 'tool_usage', {
+          tool_name: 'lucy_local_search',
+          search_category: category,
+          zip_code: locationKey === 'zip_code' ? locationVal : undefined,
+          city: locationKey === 'city' ? locationVal : undefined,
+          result_count: count
+        });
+      }
+    } catch (e) {}
+  }
+  function buildResultsMarkdown(category, isEmergency, data) {
+    var cityLabel = data.city || 'your area';
+    var lines = [];
+    var heading = category.charAt(0).toUpperCase() + category.slice(1);
+    lines.push('Here are real ' + category + ' options near ' + cityLabel + ' \u{1F43E}');
+    if (isEmergency) lines.push('\n**If this is urgent, call the nearest emergency vet before driving.**');
+    lines.push('');
+    data.results.forEach(function (p) {
+      var parts = [];
+      parts.push('**' + p.name + '**');
+      if (p.address) parts.push('\u{1F4CD} ' + p.address);
+      if (p.phone) parts.push('\u{1F4DE} ' + p.phone);
+      var meta = [];
+      if (p.rating) meta.push('\u2B50 ' + p.rating + (p.total_ratings ? ' (' + p.total_ratings + ')' : ''));
+      if (p.open_now !== undefined && p.open_now !== null) meta.push(p.open_now ? 'Open now' : 'Closed');
+      if (meta.length) parts.push(meta.join(' \u00B7 '));
+      if (p.maps_url) parts.push('[View on Google Maps](' + p.maps_url + ')');
+      lines.push(parts.join('\n'));
+      lines.push('');
+    });
+    return lines.join('\n').trim();
+  }
+  function runLocalSearch(match, zip, city) {
+    var locationKey = zip ? 'zip_code' : 'city';
+    var locationVal = zip || city;
+    showTyping();
+    var body = { zip: zip || city, type: match.type };
+    fetch(PLACES_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        hideTyping();
+        if (data && data.error) {
+          trackLocalSearch(match.cat, locationKey, locationVal, 0);
+          appendBot('I couldn\u2019t find that location. Could you double-check the ZIP code or city for me? \u{1F43E}');
+          conversation.push({ role: 'assistant', content: 'Could not resolve location for local search.' });
+          return;
+        }
+        var results = (data && data.results) || [];
+        trackLocalSearch(match.cat, locationKey, locationVal, results.length);
+        if (!results.length) {
+          var none = 'I didn\u2019t find any ' + match.cat + ' within range of ' + (data.city || locationVal) + '. Try a nearby ZIP code and I\u2019ll search again. \u{1F43E}';
+          if (match.emergency) none += '\n\n**If this is urgent, call the nearest emergency vet before driving.**';
+          appendBot(none);
+          conversation.push({ role: 'assistant', content: none });
+          return;
+        }
+        var md = buildResultsMarkdown(match.cat, match.emergency, data);
+        appendBot(md);
+        conversation.push({ role: 'assistant', content: md });
+      })
+      .catch(function () {
+        hideTyping();
+        trackLocalSearch(match.cat, locationKey, locationVal, 0);
+        var err = 'I had trouble reaching the local search just now. Give it another try in a moment, or you can search [' + match.cat + ' near ' + locationVal + '](https://www.google.com/maps/search/' + encodeURIComponent(match.type + ' near ' + locationVal) + ') directly.';
+        appendBot(err);
+        conversation.push({ role: 'assistant', content: err });
+      });
+  }
+  // Returns true if the message was handled as a local search (or a prompt for location).
+  function handleLocalIntent(text) {
+    var zip = extractZip(text);
+    var city = extractCity(text);
+    var match = detectLocalCategory(text);
+
+    // If we previously asked for a location and now got one, resume the pending search.
+    if (pendingLocalSearch && (zip || city)) {
+      var pend = pendingLocalSearch;
+      pendingLocalSearch = null;
+      runLocalSearch(pend, zip, city);
+      return true;
+    }
+    if (!match) return false;
+    if (zip || city) {
+      runLocalSearch(match, zip, city);
+      return true;
+    }
+    // Local intent but no location yet: ask for ZIP/city and remember the category.
+    pendingLocalSearch = match;
+    var ask = 'I can find real ' + match.cat + ' options near you \u{1F43E} What\u2019s your ZIP code or city?';
+    if (match.emergency) ask = 'I can find the nearest emergency vets right away \u{1F43E} What\u2019s your ZIP code or city?\n\n**If this is urgent, call the nearest emergency vet before driving.**';
+    appendBot(ask);
+    conversation.push({ role: 'assistant', content: ask });
+    return true;
+  }
+
   function appendBot(text, opts) {
     var box = document.getElementById('lucy-messages');
     var d = document.createElement('div');
@@ -190,6 +329,16 @@
     appendUser(text);
     conversation.push({ role: 'user', content: text });
     try { if (window.gtag) window.gtag('event', 'lucy_message_sent', { message_count: conversation.length }); } catch (e) {}
+
+    // Local-service intent: use the working Google Places endpoint instead of a generic chat answer.
+    var handledLocally = false;
+    try { handledLocally = handleLocalIntent(text); } catch (e) { handledLocally = false; }
+    if (handledLocally) {
+      sending = false;
+      if (sendBtn) sendBtn.disabled = false;
+      return;
+    }
+
     showTyping();
     try {
       var r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: conversation }) });
