@@ -21,11 +21,11 @@ Anything beyond the active set lives in **Next** or **Backlog** — not "In Prog
 
 ### Current active priorities (max 3–5)
 
-1. **Phase 1 — Foundation Cleanup & Trust Completion** (Trust Center, Editorial Standards, this checklist).
-2. _Open slot — do not fill until Phase 1 foundation work ships._
-3. _Open slot._
+1. **Phase 1 — Foundation Cleanup & Trust Completion** — shipped (Trust Center, Editorial Standards, this checklist live). Kept here only while the "last reviewed" pattern and the nav-placement decision wrap up.
+2. **Phase 2 — Lucy: Premium Welcome + Chat Polish** — shipped (Lucy 2.0 first-visit welcome, suggestion cards, premium chat UI).
+3. **Phase 2 — Lucy Care Companion™ Notification Engine** — in progress (provider-agnostic communication foundation + Notification Preferences page).
 
-> Phase 2+ product work is intentionally **not** active yet. Finish the foundation first.
+  Foundation (Phase 1) has shipped, so Phase 2 product work is now active. Still respecting the 3–5 rule: nothing new enters "In Progress" until one of the above moves out.
 
 ---
 
@@ -69,19 +69,25 @@ Lucy is the AI pet assistant and the heart of the platform. Behavior is governed
   - Google Places integration powering real local results.
   - Chewy product sourcing integrated.
   - Amazon affiliate approach defined.
+  - Lucy 2.0 premium first-visit welcome experience (welcome modal, primary actions, future-ready media container).
+  - Lucy chat polish: suggestion cards, timestamps, premium UI, empty state.
 - **In Progress**
-  - _None active (respecting the 3–5 rule)._
+  - Lucy Care Companion™ Notification Engine — unified, provider-agnostic communication foundation (Email, SMS, Browser, future Push) + Notification Preferences page (\`/notifications/\`).
 - **Next**
   - Sharpen clarifying questions and reduce conversational friction.
-  - Tighten safety/emergency phrasing and "call a vet now" escalation.
+  - Tighten safety/emergency phrasing and “call a vet now” escalation.
   - Improve relevance and explanation quality of recommendations.
+  - Wire a real email provider (e.g. Resend/SendGrid) behind the engine when a transport layer exists.
 - **Backlog**
   - Lightweight memory / personalization (future).
   - Additional integrations beyond Chewy/Amazon.
   - Region-aware emergency vet awareness inside Lucy.
+  - SMS + mobile push delivery once accounts/transport land (architecture already in place).
+  - Connect notification preferences to My Pets profiles and per-pet reminders.
 - **Notes**
   - Lucy is never a salesperson, diagnostician, or vet replacement.
   - Recommendations are usefulness-first; commission never decides.
+  - Notifications must always sound like Lucy: warm, encouraging, helpful — never spammy, fear-based, or pushy. Providers stay swappable; none are hardcoded.
 
 ## Phase 3 — My Pets
 
