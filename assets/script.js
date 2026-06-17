@@ -30,7 +30,7 @@ return '<footer class="pimc-footer"><div class="container">'+
 '<div>'+
 '<p style="font-family:Nunito;font-weight:700;color:white;margin-bottom:12px">Company</p>'+
 '<div style="display:flex;flex-direction:column;gap:8px">'+
-'<a href="/about/" class="footer-link">About</a>'+
+'<a href="/about/" class="footer-link">About</a><a href="/trust/" class="footer-link">Trust Center</a><a href="/editorial-standards/" class="footer-link">Editorial Standards</a>'+
 '<a href="/privacy/" class="footer-link">Privacy</a>'+
 '<a href="mailto:help@elitemediagroup.io" class="footer-link">Contact</a>'+
 '<a href="https://consumersupporthelp.com" class="footer-link" target="_blank" rel="noopener">ConsumerSupportHelp</a>'+
