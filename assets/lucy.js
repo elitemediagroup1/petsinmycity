@@ -9,47 +9,70 @@
   var PLACES_ENDPOINT = '/.netlify/functions/places-search';
 
   var STYLES = [
-    '#lucy-widget-btn{position:fixed;bottom:24px;right:24px;z-index:9999;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:Inter,system-ui,sans-serif}',
-    '#lucy-avatar-ring{width:80px;height:80px;border-radius:50%;border:3px solid var(--amber, #F59E0B);overflow:hidden;position:relative;box-shadow:0 4px 20px rgba(245,158,11,0.4);animation:lucyPulse 2s ease-in-out infinite;background:#fff}',
-    '#lucy-avatar-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%}',
-    '@keyframes lucyPulse{0%,100%{box-shadow:0 4px 20px rgba(245,158,11,0.4)}50%{box-shadow:0 4px 32px rgba(245,158,11,0.7)}}',
-    '#lucy-label{background:var(--charcoal, #1C1917);color:#fff;font-family:Nunito,sans-serif;font-weight:700;font-size:0.75rem;padding:4px 12px;border-radius:999px;white-space:nowrap}',
-    '#lucy-notif{position:absolute;top:0;right:0;width:18px;height:18px;background:var(--coral, #FB7185);border-radius:50%;border:2px solid #fff;animation:notifPulse 1.5s ease-in-out infinite;z-index:2}',
-    '@keyframes notifPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}',
-    '#lucy-panel{position:fixed;bottom:24px;right:24px;width:360px;height:520px;background:#fff;border-radius:20px;box-shadow:0 16px 60px rgba(0,0,0,0.2);z-index:9999;display:none;flex-direction:column;overflow:hidden;border:2px solid var(--amber-light, #FEF3C7);animation:slideUp 0.3s ease-out;font-family:Inter,system-ui,sans-serif}',
-    '#lucy-panel.open{display:flex}',
-    '@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}',
-    '#lucy-head{background:linear-gradient(135deg,var(--charcoal, #1C1917),#2d2d2d);padding:16px 20px;display:flex;align-items:center;gap:12px;color:#fff}',
-    '#lucy-head .avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid var(--amber, #F59E0B);flex:none}',
-    '#lucy-head .avatar img{width:100%;height:100%;object-fit:cover}',
-    '#lucy-head .meta{flex:1}',
-    '#lucy-head .name{font-family:Nunito,sans-serif;font-weight:700;font-size:1rem;line-height:1.2}',
-    '#lucy-head .role{color:rgba(255,255,255,0.6);font-size:0.75rem}',
-    '#lucy-close{background:none;border:none;color:#fff;opacity:0.7;font-size:1.2rem;cursor:pointer;padding:4px 8px}',
-    '#lucy-close:hover{opacity:1}',
-    '#lucy-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#fafafa}',
-    '.lucy-msg{max-width:85%;font-size:0.875rem;line-height:1.6;padding:10px 14px;word-wrap:break-word}',
-    '.lucy-msg.bot{background:#fff;border:1px solid var(--border, #E7E5E4);border-radius:0 12px 12px 12px;color:var(--charcoal, #1C1917);align-self:flex-start}',
-    '.lucy-msg.user{background:var(--amber, #F59E0B);color:#fff;border-radius:12px 0 12px 12px;align-self:flex-end}',
-    '.lucy-msg.bot p{margin:0 0 6px}',
-    '.lucy-msg.bot p:last-child{margin-bottom:0}',
-    '.lucy-typing{display:inline-flex;gap:4px;align-items:center;padding:4px 0}',
-    '.lucy-typing span{width:7px;height:7px;background:var(--gray, #57534E);border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite}',
-    '.lucy-typing span:nth-child(2){animation-delay:0.15s}',
-    '.lucy-typing span:nth-child(3){animation-delay:0.3s}',
-    '@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-6px);opacity:1}}',
-    '.lucy-quick-replies{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;align-self:flex-start;max-width:85%}',
-    '.lucy-quick-btn{background:#fff;border:1.5px solid var(--amber, #F59E0B);color:var(--amber-dark, #B45309);border-radius:999px;padding:5px 12px;font-size:0.8rem;font-family:Nunito,sans-serif;font-weight:600;cursor:pointer;transition:all 0.15s}',
-    '.lucy-quick-btn:hover{background:var(--amber, #F59E0B);color:#fff}',
-    '.lucy-link-btn{display:inline-block;background:var(--amber, #F59E0B);color:#fff;padding:8px 16px;border-radius:999px;font-family:Nunito,sans-serif;font-weight:700;font-size:0.85rem;text-decoration:none;margin:6px 4px 0 0}',
-    '.lucy-link-btn:hover{background:var(--amber-dark, #B45309)}',
-    '#lucy-input-wrap{padding:12px 16px;border-top:1px solid var(--border, #E7E5E4);display:flex;gap:8px;background:#fff}',
-    '#lucy-input{flex:1;padding:10px 16px;border:1.5px solid var(--border, #E7E5E4);border-radius:999px;font-size:0.9rem;font-family:Inter,system-ui,sans-serif;outline:none}',
-    '#lucy-input:focus{border-color:var(--amber, #F59E0B)}',
-    '#lucy-send{width:40px;height:40px;background:var(--amber, #F59E0B);border:none;border-radius:50%;color:#fff;font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}',
-    '#lucy-send:disabled{opacity:0.5;cursor:not-allowed}',
-    '@media (max-width:768px){#lucy-panel{width:100vw;height:75vh;bottom:0;right:0;border-radius:20px 20px 0 0}}'
-  ].join('\n');
+      '#lucy-widget-btn{position:fixed;bottom:24px;right:24px;z-index:9999;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:Inter,system-ui,sans-serif}',
+      '#lucy-avatar-ring{width:72px;height:72px;border-radius:50%;border:3px solid var(--amber,#F59E0B);overflow:hidden;position:relative;box-shadow:0 6px 22px rgba(245,158,11,.45);animation:lucyPulse 2.4s ease-in-out infinite;background:#fff}',
+      '#lucy-avatar-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%}',
+      '@keyframes lucyPulse{0%,100%{box-shadow:0 6px 22px rgba(245,158,11,.4)}50%{box-shadow:0 6px 34px rgba(245,158,11,.7)}}',
+      '#lucy-label{background:var(--charcoal,#1C1917);color:#fff;font-family:Nunito,sans-serif;font-weight:700;font-size:.75rem;padding:4px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15)}',
+      '#lucy-notif{position:absolute;top:0;right:0;width:16px;height:16px;background:var(--coral,#FB7185);border-radius:50%;border:2px solid #fff;animation:notifPulse 1.8s ease-in-out infinite}',
+      '@keyframes notifPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}',
+      '#lucy-panel{position:fixed;bottom:24px;right:24px;width:380px;height:560px;background:#fff;border-radius:22px;box-shadow:0 20px 70px rgba(0,0,0,.24);z-index:9999;display:none;flex-direction:column;overflow:hidden;border:1px solid var(--border,#E7E5E4);animation:slideUp .32s cubic-bezier(.22,1,.36,1);font-family:Inter,system-ui,sans-serif}',
+      '#lucy-panel.open{display:flex}',
+      '@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}',
+      '#lucy-head{background:linear-gradient(135deg,var(--charcoal,#1C1917),#33302d);padding:16px 18px;display:flex;align-items:center;gap:12px;color:#fff}',
+      '#lucy-head .avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid var(--amber,#F59E0B);flex:none;position:relative}',
+      '#lucy-head .avatar img{width:100%;height:100%;object-fit:cover}',
+      '#lucy-head .avatar::after{content:\'\';position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:var(--sage-dark,#22C55E);border:2px solid var(--charcoal,#1C1917);border-radius:50%}',
+      '#lucy-head .meta{flex:1;min-width:0}',
+      '#lucy-head .name{font-family:Nunito,sans-serif;font-weight:800;font-size:1.02rem;line-height:1.2}',
+      '#lucy-head .role{font-size:.74rem;opacity:.8;display:flex;align-items:center;gap:5px}',
+      '#lucy-head .role::before{content:\'\';width:6px;height:6px;border-radius:50%;background:var(--sage-dark,#22C55E)}',
+      '#lucy-close{background:rgba(255,255,255,.12);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;transition:background .15s}',
+      '#lucy-close:hover{background:rgba(255,255,255,.25)}',
+      '#lucy-messages{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;background:var(--cream,#FFFBF5);scroll-behavior:smooth}',
+      '#lucy-messages::-webkit-scrollbar{width:7px}',
+      '#lucy-messages::-webkit-scrollbar-thumb{background:rgba(0,0,0,.14);border-radius:99px}',
+      '.lucy-row{display:flex;gap:9px;align-items:flex-end;max-width:100%}',
+      '.lucy-row.user{flex-direction:row-reverse}',
+      '.lucy-msg-avatar{width:30px;height:30px;border-radius:50%;overflow:hidden;flex:none;border:1.5px solid var(--amber-light,#FEF3C7);background:#fff}',
+      '.lucy-msg-avatar img{width:100%;height:100%;object-fit:cover}',
+      '.lucy-col{display:flex;flex-direction:column;max-width:78%;min-width:0}',
+      '.lucy-row.user .lucy-col{align-items:flex-end}',
+      '.lucy-msg{font-size:.9rem;line-height:1.6;padding:11px 15px;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.05)}',
+      '.lucy-msg.bot{background:#fff;border:1px solid var(--border,#E7E5E4);border-radius:4px 16px 16px 16px;color:var(--charcoal,#1C1917)}',
+      '.lucy-msg.user{background:linear-gradient(135deg,var(--amber,#F59E0B),var(--amber-dark,#D97706));color:#fff;border-radius:16px 4px 16px 16px}',
+      '.lucy-msg.bot p{margin:0 0 7px}',
+      '.lucy-msg.bot p:last-child{margin-bottom:0}',
+      '.lucy-msg.bot strong{color:var(--amber-dark,#B45309)}',
+      '.lucy-msg.bot a{color:var(--amber-dark,#B45309);font-weight:600}',
+      '.lucy-time{font-size:.66rem;color:var(--gray,#78716C);margin:4px 6px 0;font-family:Inter,system-ui,sans-serif}',
+      '.lucy-typing-msg{padding:13px 16px}',
+      '.lucy-typing{display:inline-flex;gap:5px;align-items:center}',
+      '.lucy-typing span{width:7px;height:7px;background:var(--amber,#F59E0B);border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite}',
+      '.lucy-typing span:nth-child(2){animation-delay:.15s}',
+      '.lucy-typing span:nth-child(3){animation-delay:.3s}',
+      '@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}',
+      '.lucy-quick-replies{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 0 39px;max-width:85%}',
+      '.lucy-quick-btn{background:#fff;border:1.5px solid var(--amber,#F59E0B);color:var(--amber-dark,#B45309);border-radius:999px;padding:6px 13px;font-size:.78rem;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;transition:all .15s}',
+      '.lucy-quick-btn:hover{background:var(--amber,#F59E0B);color:#fff}',
+      '.lucy-suggestions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 2px 39px}',
+      '.lucy-suggestion-card{display:flex;align-items:center;gap:8px;text-align:left;background:#fff;border:1px solid var(--border,#E7E5E4);border-radius:13px;padding:11px 12px;font-family:Nunito,sans-serif;font-weight:700;font-size:.8rem;color:var(--charcoal,#1C1917);cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s}',
+      '.lucy-suggestion-card:hover{border-color:var(--amber,#F59E0B);box-shadow:0 4px 14px rgba(245,158,11,.18);transform:translateY(-1px)}',
+      '.lucy-suggestion-card:focus-visible{outline:2px solid var(--amber,#F59E0B);outline-offset:2px}',
+      '.lucy-suggestion-icon{font-size:1.05rem;line-height:1;flex:none}',
+      '.lucy-suggestion-label{line-height:1.25}',
+      '.lucy-link-btn{display:inline-block;background:var(--amber,#F59E0B);color:#fff;padding:8px 16px;border-radius:999px;font-family:Nunito,sans-serif;font-weight:700;font-size:.85rem;text-decoration:none;margin-top:4px}',
+      '.lucy-link-btn:hover{background:var(--amber-dark,#D97706)}',
+      '#lucy-input-wrap{padding:12px 14px;border-top:1px solid var(--border,#E7E5E4);display:flex;gap:8px;background:#fff;align-items:center}',
+      '#lucy-input{flex:1;padding:11px 16px;border:1.5px solid var(--border,#E7E5E4);border-radius:999px;font-size:.9rem;font-family:Inter,system-ui,sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}',
+      '#lucy-input:focus{border-color:var(--amber,#F59E0B);box-shadow:0 0 0 3px rgba(245,158,11,.15)}',
+      '#lucy-send{width:42px;height:42px;background:linear-gradient(135deg,var(--amber,#F59E0B),var(--amber-dark,#D97706));border:none;border-radius:50%;color:#fff;font-size:1.05rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .12s,opacity .15s}',
+      '#lucy-send:hover{transform:scale(1.06)}',
+      '#lucy-send:disabled{opacity:.5;cursor:not-allowed;transform:none}',
+      '@media (max-width:768px){#lucy-panel{width:100vw;height:80vh;bottom:0;right:0;border-radius:18px 18px 0 0}.lucy-suggestions{grid-template-columns:1fr 1fr}.lucy-col{max-width:80%}}',
+      '@media (max-width:380px){.lucy-suggestions{grid-template-columns:1fr}}',
+      '@media (prefers-reduced-motion:reduce){#lucy-panel,#lucy-avatar-ring,#lucy-notif,.lucy-typing span,.lucy-suggestion-card,#lucy-send{animation:none!important;transition:none!important}}'
+    ].join('\n');
 
   function injectStyles() {
     if (document.getElementById('lucy-styles')) return;
@@ -252,39 +275,74 @@
 
   function appendBot(text, opts) {
     var box = document.getElementById('lucy-messages');
+    var row = document.createElement('div');
+    row.className = 'lucy-row bot';
+    var av = document.createElement('div');
+    av.className = 'lucy-msg-avatar';
+    av.innerHTML = '<img src="' + LUCY_AVATAR + '" alt="">';
+    var col = document.createElement('div');
+    col.className = 'lucy-col';
     var d = document.createElement('div');
     d.className = 'lucy-msg bot';
     d.innerHTML = renderMarkdownLite(text);
-    box.appendChild(d);
+    col.appendChild(d);
+    var t = document.createElement('div');
+    t.className = 'lucy-time';
+    t.textContent = nowTime();
+    col.appendChild(t);
+    row.appendChild(av);
+    row.appendChild(col);
+    box.appendChild(row);
     if (opts && opts.quickReplies) {
       var qr = document.createElement('div');
       qr.className = 'lucy-quick-replies';
       opts.quickReplies.forEach(function (q) {
-        var b = document.createElement('button');
-        b.className = 'lucy-quick-btn';
-        b.textContent = q.label;
-        b.addEventListener('click', function () { send(q.text || q.label); });
-        qr.appendChild(b);
+        var bn = document.createElement('button');
+        bn.className = 'lucy-quick-btn';
+        bn.type = 'button';
+        bn.textContent = q.label;
+        bn.addEventListener('click', function () { send(q.text || q.label); });
+        qr.appendChild(bn);
       });
       box.appendChild(qr);
     }
     box.scrollTop = box.scrollHeight;
   }
+
+  function nowTime() {
+    try {
+      return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
   function appendUser(text) {
     var box = document.getElementById('lucy-messages');
+    var sg = document.getElementById('lucy-suggestions');
+    if (sg && sg.parentNode) sg.parentNode.removeChild(sg);
+    var row = document.createElement('div');
+    row.className = 'lucy-row user';
+    var col = document.createElement('div');
+    col.className = 'lucy-col';
     var d = document.createElement('div');
     d.className = 'lucy-msg user';
     d.textContent = text;
-    box.appendChild(d);
+    col.appendChild(d);
+    var t = document.createElement('div');
+    t.className = 'lucy-time';
+    t.textContent = nowTime();
+    col.appendChild(t);
+    row.appendChild(col);
+    box.appendChild(row);
     box.scrollTop = box.scrollHeight;
   }
   function showTyping() {
     var box = document.getElementById('lucy-messages');
-    var d = document.createElement('div');
-    d.id = 'lucy-typing-bubble';
-    d.className = 'lucy-msg bot';
-    d.innerHTML = '<div class="lucy-typing"><span></span><span></span><span></span></div>';
-    box.appendChild(d);
+    var row = document.createElement('div');
+    row.id = 'lucy-typing-bubble';
+    row.className = 'lucy-row bot';
+    row.setAttribute('aria-label', 'Lucy is typing');
+    row.innerHTML = '<div class="lucy-msg-avatar"><img src="' + LUCY_AVATAR + '" alt=""></div>' +
+      '<div class="lucy-col"><div class="lucy-msg bot lucy-typing-msg"><div class="lucy-typing"><span></span><span></span><span></span></div></div></div>';
+    box.appendChild(row);
     box.scrollTop = box.scrollHeight;
   }
   function hideTyping() {
@@ -297,21 +355,53 @@
     p.classList.add('open');
     var b = document.getElementById('lucy-widget-btn');
     if (b) b.style.display = 'none';
-    try { if (window.gtag) window.gtag('event', 'lucy_chat_opened', {}); } catch (e) {}
+    try { if (window.pimcTrack) { window.pimcTrack('lucy_chat_opened', {}); } else if (window.gtag) { window.gtag('event', 'lucy_chat_opened', {}); } } catch (e) {}
     if (!started) {
       started = true;
-      appendBot('Hi! \u{1F43E} I\u2019m Lucy, your AI pet advisor. Ask me anything \u2014 insurance, vets, dog walking, adoption, health questions, food recommendations \u2014 I\u2019m here to help!', {
-        quickReplies: [
-          { label: '\u{1F3E5} Pet Insurance', text: 'What pet insurance do you recommend?' },
-          { label: '\u{1FA7A} Find a Vet', text: 'How do I find a vet near me?' },
-          { label: '\u{1F9AE} Dog Walking', text: 'How do I find a dog walker?' },
-          { label: '\u{1F43E} Adoption', text: 'I want to adopt a pet' },
-          { label: '\u{1F6D2} Shop Pet Supplies', text: 'Shop Pet Supplies' },
-          { label: '\u2753 Something else', text: 'I have a different question' }
-        ]
-      });
+      appendBot('Hi! \u{1F43E} I\u2019m Lucy, your trusted AI pet companion. Ask me anything \u2014 finding local vets, groomers and boarding, food safety, emergencies, or just a question about your pet. Pick a starting point below, or type your own.');
+      renderSuggestions();
     }
     setTimeout(function () { var i = document.getElementById('lucy-input'); if (i) i.focus(); }, 100);
+  }
+
+  function renderSuggestions() {
+    var box = document.getElementById('lucy-messages');
+    if (!box) return;
+    if (document.getElementById('lucy-suggestions')) return;
+    var suggestions = [
+      { icon: '\u{1F691}', label: 'Find an emergency vet', text: 'Find an emergency vet near me' },
+      { icon: '\u{1F36C}', label: 'Is this food safe?', text: 'Is this food safe for my pet?' },
+      { icon: '\u2702\uFE0F', label: 'Find a groomer', text: 'Help me find a groomer near me' },
+      { icon: '\u{1F415}', label: 'Help me choose dog food', text: 'Help me choose dog food' },
+      { icon: '\u{1F436}', label: 'Puppy checklist', text: 'What should be on my new puppy checklist?' },
+      { icon: '\u2708\uFE0F', label: 'Traveling with my pet', text: 'How do I travel with my pet?' },
+      { icon: '\u{1F4AC}', label: 'Ask anything', text: '' }
+    ];
+    var wrap = document.createElement('div');
+    wrap.id = 'lucy-suggestions';
+    wrap.className = 'lucy-suggestions';
+    wrap.setAttribute('role', 'list');
+    wrap.setAttribute('aria-label', 'Suggested questions');
+    suggestions.forEach(function (s) {
+      var card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'lucy-suggestion-card';
+      card.setAttribute('role', 'listitem');
+      card.innerHTML = '<span class="lucy-suggestion-icon" aria-hidden="true">' + s.icon + '</span><span class="lucy-suggestion-label"></span>';
+      card.querySelector('.lucy-suggestion-label').textContent = s.label;
+      card.addEventListener('click', function () {
+        try { if (window.pimcTrack) { window.pimcTrack('lucy_suggestion_clicked', { suggestion: s.label }); } else if (window.gtag) { window.gtag('event', 'lucy_suggestion_clicked', { suggestion: s.label }); } } catch (e) {}
+        var input = document.getElementById('lucy-input');
+        if (input) {
+          input.value = s.text;
+          input.focus();
+          try { var len = input.value.length; input.setSelectionRange(len, len); } catch (e) {}
+        }
+      });
+      wrap.appendChild(card);
+    });
+    box.appendChild(wrap);
+    box.scrollTop = box.scrollHeight;
   }
   function closeLucy() {
     var p = document.getElementById('lucy-panel');
