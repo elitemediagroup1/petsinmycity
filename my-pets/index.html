@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>My Pets — PetsInMyCity</title>
+  <meta name="description" content="Your private space for your pets. Stored only in your browser.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YVNBXJBZZ3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YVNBXJBZZ3');
+  </script>
+  <style>
+    /* ===== My Pets — scoped styles, reusing existing design tokens ===== */
+    .mp-wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px;}
+    .mp-eyebrow{font-family:'Nunito',sans-serif;font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:.78rem;color:var(--amber-dark);margin:0 0 8px;}
+    .mp-h1{font-family:'Nunito',sans-serif;font-weight:800;font-size:2rem;line-height:1.15;color:var(--charcoal);margin:0 0 10px;}
+    .mp-lede{color:var(--gray);font-size:1.05rem;margin:0 0 24px;}
+    .mp-card{background:var(--white,#fff);border:1px solid var(--border);border-radius:var(--radius-lg,16px);box-shadow:var(--shadow-sm);padding:24px;margin:0 0 20px;}
+    .mp-card h2{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.25rem;color:var(--charcoal);margin:0 0 14px;}
+    /* Conversational onboarding */
+    .mp-chat{display:flex;flex-direction:column;gap:14px;}
+    .mp-bubble{display:flex;gap:12px;align-items:flex-start;}
+    .mp-avatar{flex:0 0 auto;width:44px;height:44px;border-radius:50%;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+    .mp-says{background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:12px 16px;color:var(--charcoal);font-size:1.02rem;}
+    .mp-field{margin:6px 0 0;}
+    .mp-field label{display:block;font-weight:700;color:var(--charcoal);margin:0 0 6px;font-size:.95rem;}
+    .mp-field input,.mp-field select,.mp-field textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:1rem;font-family:inherit;color:var(--charcoal);background:#fff;}
+    .mp-field input:focus,.mp-field select:focus,.mp-field textarea:focus{outline:3px solid var(--amber-light);border-color:var(--amber);}
+    .mp-hint{color:var(--gray);font-size:.85rem;margin:6px 0 0;}
+    .mp-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+    .mp-btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;border:none;border-radius:var(--radius-pill,999px);padding:12px 22px;cursor:pointer;background:var(--amber);color:#fff;}
+    .mp-btn:hover{background:var(--amber-dark);}
+    .mp-btn.secondary{background:#fff;color:var(--charcoal);border:1.5px solid var(--border);}
+    .mp-btn.secondary:hover{border-color:var(--amber);}
+    .mp-btn.danger{background:#fff;color:var(--coral-dark,#be123c);border:1.5px solid var(--coral,#fb7185);}
+    .mp-btn:focus-visible{outline:3px solid var(--amber-dark);outline-offset:2px;}
+    .mp-progress{height:8px;border-radius:999px;background:var(--border);overflow:hidden;margin:0 0 18px;}
+    .mp-progress > span{display:block;height:100%;background:var(--amber);transition:width .3s ease;}
+    /* Summary card */
+    .mp-pet{display:flex;gap:18px;align-items:center;}
+    .mp-pet-photo{flex:0 0 auto;width:84px;height:84px;border-radius:50%;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:2.4rem;overflow:hidden;}
+    .mp-pet-photo img{width:100%;height:100%;object-fit:cover;}
+    .mp-pet-name{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.5rem;color:var(--charcoal);margin:0;}
+    .mp-pet-meta{color:var(--gray);margin:4px 0 0;font-size:.98rem;}
+    .mp-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:16px;}
+    .mp-detail-grid div{font-size:.95rem;color:var(--charcoal);}
+    .mp-detail-grid span{display:block;color:var(--gray);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;font-weight:700;}
+    /* Score */
+    .mp-score-top{display:flex;align-items:center;gap:18px;}
+    .mp-score-num{font-family:'Nunito',sans-serif;font-weight:800;font-size:3rem;line-height:1;color:var(--amber-dark);}
+    .mp-score-msg{color:var(--charcoal);font-weight:700;}
+    .mp-score-frame{color:var(--gray);font-size:.86rem;margin:10px 0 0;font-style:italic;}
+    .mp-cats{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:10px;}
+    .mp-cat{}
+    .mp-cat-head{display:flex;justify-content:space-between;font-size:.9rem;color:var(--charcoal);font-weight:700;margin:0 0 4px;}
+    .mp-bar{height:8px;border-radius:999px;background:var(--border);overflow:hidden;}
+    .mp-bar > span{display:block;height:100%;background:var(--sage-dark,#22c55e);}
+    .mp-cat-why{color:var(--gray);font-size:.82rem;margin:4px 0 0;}
+    /* Missions */
+    .mp-missions{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
+    .mp-mission{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff;text-align:left;cursor:pointer;width:100%;font-family:inherit;}
+    .mp-mission:hover{border-color:var(--amber);}
+    .mp-mission .pts{font-family:'Nunito',sans-serif;font-weight:800;color:var(--amber-dark);background:var(--amber-light);border-radius:999px;padding:4px 10px;font-size:.85rem;flex:0 0 auto;}
+    .mp-mission .txt{color:var(--charcoal);font-weight:600;}
+    .mp-mission:focus-visible{outline:3px solid var(--amber-dark);outline-offset:2px;}
+    /* Badges */
+    .mp-badges{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none;}
+    .mp-badge{display:flex;align-items:center;gap:8px;border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem;border:1.5px solid var(--border);color:var(--gray);background:#fff;}
+    .mp-badge.earned{border-color:var(--sage-dark,#22c55e);color:var(--sage-dark,#16a34a);background:#f0fdf4;}
+    .mp-badge .b-ico{font-size:1.1rem;}
+    /* Shortcuts */
+    .mp-shortcuts{display:grid;grid-template-columns:1fr;gap:10px;}
+    .mp-shortcut{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--charcoal);font-weight:700;background:#fff;}
+    .mp-shortcut:hover{border-color:var(--amber);}
+    .mp-shortcut .s-ico{font-size:1.4rem;}
+    /* Privacy */
+    .mp-privacy{background:var(--cream);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--gray);font-size:.88rem;display:flex;gap:10px;align-items:flex-start;}
+    .mp-privacy strong{color:var(--charcoal);}
+    .mp-foot-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-top:8px;}
+    .mp-hidden{display:none !important;}
+    .mp-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
+    @media (min-width:560px){.mp-shortcuts{grid-template-columns:1fr 1fr;}}
+    @media (prefers-reduced-motion:reduce){.mp-progress>span,.mp-score-num{transition:none;}}
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="mp-wrap" id="mp-app">
+    <p class="mp-eyebrow">My Pets</p>
+    <h1 class="mp-h1">Your pets, in one private place</h1>
+
+    <!-- ONBOARDING (shown when no pet is saved) -->
+    <section id="mp-onboarding" class="mp-card" aria-labelledby="mp-onboarding-title">
+      <h2 id="mp-onboarding-title" class="mp-sr">Let Lucy meet your pet</h2>
+      <div class="mp-progress" aria-hidden="true"><span id="mp-progress-bar" style="width:0%"></span></div>
+      <div class="mp-chat">
+        <div class="mp-bubble">
+          <div class="mp-avatar" aria-hidden="true">🐾</div>
+          <div class="mp-says" id="mp-question" role="status" aria-live="polite">Hi, I'm Lucy. I'd love to meet your pet. What's their name?</div>
+        </div>
+        <form id="mp-step-form" novalidate>
+          <div class="mp-field" id="mp-field-wrap">
+            <label id="mp-step-label" for="mp-step-input">Your pet's name</label>
+            <input id="mp-step-input" name="step" type="text" autocomplete="off" />
+            <select id="mp-step-select" class="mp-hidden" aria-label="Choose an option"></select>
+            <p class="mp-hint" id="mp-step-hint"></p>
+          </div>
+          <div class="mp-actions">
+            <button type="submit" class="mp-btn" id="mp-next">Continue</button>
+            <button type="button" class="mp-btn secondary mp-hidden" id="mp-skip">Skip</button>
+            <button type="button" class="mp-btn secondary mp-hidden" id="mp-back">Back</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- HOME (shown after onboarding) -->
+    <div id="mp-home" class="mp-hidden">
+      <section class="mp-card" aria-labelledby="mp-summary-title">
+        <h2 id="mp-summary-title" class="mp-sr">Pet summary</h2>
+        <div class="mp-pet">
+          <div class="mp-pet-photo" id="mp-pet-photo" aria-hidden="true">🐾</div>
+          <div>
+            <p class="mp-pet-name" id="mp-pet-name">—</p>
+            <p class="mp-pet-meta" id="mp-pet-meta">—</p>
+          </div>
+        </div>
+        <div class="mp-detail-grid" id="mp-detail-grid"></div>
+      </section>
+
+      <section class="mp-card" aria-labelledby="mp-score-title">
+        <h2 id="mp-score-title">Lucy Care Score&trade;</h2>
+        <div class="mp-score-top">
+          <div class="mp-score-num" id="mp-score-num" aria-describedby="mp-score-frame">0</div>
+          <div class="mp-score-msg" id="mp-score-msg"></div>
+        </div>
+        <ul class="mp-cats" id="mp-cats"></ul>
+        <p class="mp-score-frame" id="mp-score-frame">Lucy Care Score&trade; is a lifestyle, preparedness, and organization snapshot &mdash; not a medical evaluation. It does not diagnose and does not measure how healthy your pet is.</p>
+      </section>
+
+      <section class="mp-card" aria-labelledby="mp-missions-title">
+        <h2 id="mp-missions-title">Next steps for a higher score</h2>
+        <ul class="mp-missions" id="mp-missions"></ul>
+      </section>
+
+      <section class="mp-card" aria-labelledby="mp-badges-title">
+        <h2 id="mp-badges-title">Badges</h2>
+        <ul class="mp-badges" id="mp-badges"></ul>
+      </section>
+
+      <section class="mp-card" aria-labelledby="mp-shortcuts-title">
+        <h2 id="mp-shortcuts-title">Quick care shortcuts</h2>
+        <div class="mp-shortcuts">
+          <a class="mp-shortcut" id="mp-sc-planner" href="/pet-emergency-planner/"><span class="s-ico" aria-hidden="true">📋</span> Emergency Planner</a>
+          <a class="mp-shortcut" id="mp-sc-vet" href="/find-a-vet/"><span class="s-ico" aria-hidden="true">🏥</span> Find a nearby vet</a>
+          <a class="mp-shortcut" id="mp-sc-emerg" href="/find-a-vet/?type=emergency"><span class="s-ico" aria-hidden="true">🚑</span> Find an emergency vet</a>
+        </div>
+      </section>
+
+      <section class="mp-card" aria-labelledby="mp-notes-title">
+        <h2 id="mp-notes-title">Notes</h2>
+        <div class="mp-field">
+          <label for="mp-notes" class="mp-sr">Notes about your pet</label>
+          <textarea id="mp-notes" rows="4" placeholder="Anything you'd like to remember about your pet&hellip;"></textarea>
+          <p class="mp-hint">Saved automatically in this browser.</p>
+        </div>
+      </section>
+
+      <section class="mp-card" aria-labelledby="mp-privacy-title">
+        <h2 id="mp-privacy-title" class="mp-sr">Your privacy</h2>
+        <div class="mp-privacy">
+          <span aria-hidden="true">🔒</span>
+          <span><strong>Your information stays private.</strong> Everything you add here is stored only in this browser. It is never uploaded to a server, never shared, and you can delete it anytime with the button below.</span>
+        </div>
+        <div class="mp-foot-actions">
+          <button type="button" class="mp-btn secondary" id="mp-edit">Edit profile</button>
+          <button type="button" class="mp-btn danger" id="mp-clear">Clear my data</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/assets/script.js"></script>
+  <script src="/assets/my-pets.js"></script>
+</body>
+</html>
