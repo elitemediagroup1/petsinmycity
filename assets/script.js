@@ -343,3 +343,6 @@ document.removeEventListener('click', closeAll);
 
 /* Load standardized analytics framework */
 (function(){ try{ var s = document.createElement('script'); s.src = '/assets/analytics.js'; s.defer = true; (document.head || document.documentElement).appendChild(s); }catch(e){} })();
+
+/* Lucy 2.0 first-visit welcome (self-gates via localStorage: pimc-lucy-welcome-seen) */
+(function(){ try{ if(window.localStorage && window.localStorage.getItem('pimc-lucy-welcome-seen')==='1') return; }catch(e){} try{ if(document.getElementById('pimc-lucy-welcome-tag')) return; var w=document.createElement('script'); w.id='pimc-lucy-welcome-tag'; w.src='/assets/lucy-welcome.js'; w.defer=true; (document.head||document.documentElement).appendChild(w); }catch(e){} })();
