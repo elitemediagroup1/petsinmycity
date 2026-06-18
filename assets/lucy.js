@@ -409,6 +409,50 @@
     var b = document.getElementById('lucy-widget-btn');
     if (b) b.style.display = 'flex';
   }
+  // Veterinary Care Engine integration: Lucy determines urgency and chooses the
+  // care pathway BEFORE recommending any provider. She never diagnoses, never
+  // replaces emergency or in-person care, and never recommends an online
+  // provider in an emergency. Dutch (or any provider) only appears for the
+  // online care path. See assets/vet-care-engine.js and docs/lucy-brain.md.
+  function handleCarePathway(text) {
+    var VC = window.PIMCVetCare;
+    if (!VC || typeof VC.recommend !== 'function') return false;
+    var rec = VC.recommend(text);
+    if (!rec || !rec.path) return false;
+    var p = rec.path;
+    var lines = [];
+
+    if (rec.isEmergency) {
+      // EMERGENCY / POISON: escalate immediately. Never mention a provider.
+      lines.push('**This may be an emergency.** ' + rec.reason);
+      lines.push('');
+      lines.push('Please contact your nearest emergency vet right away. You can [find an emergency vet](/tools/emergency-finder/) near you, and for a suspected poisoning, call an animal poison control hotline as well.');
+      appendBot(lines.join('\n'));
+      conversation.push({ role: 'assistant', content: lines.join('\n') });
+      try { if (window.pimcTrack) window.pimcTrack('lucy_care_pathway', { path: p.id, emergency: true }); } catch (e) {}
+      return true;
+    }
+
+    // Routine paths: explain the right kind of care and why.
+    lines.push(rec.reason);
+    lines.push('');
+    lines.push('**' + p.label + '** is usually the right fit here. [Learn more](' + p.link + ').');
+
+    // Only the online path may surface a provider, and only after the guidance.
+    if (rec.providers && rec.providers.length) {
+      lines.push('');
+      lines.push('If you would like to talk with a licensed vet online for a non-urgent question, [our Online Vet guide](/online-vet/) explains how it works.');
+      rec.providers.forEach(function (pr) {
+        lines.push('One trusted option is **' + pr.name + '**, an online veterinary care service. _(' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)_');
+      });
+    }
+
+    appendBot(lines.join('\n'));
+    conversation.push({ role: 'assistant', content: lines.join('\n') });
+    try { if (window.pimcTrack) window.pimcTrack('lucy_care_pathway', { path: p.id, emergency: false, providers: (rec.providers||[]).length }); } catch (e) {}
+    return true;
+  }
+
   async function send(text) {
     if (sending) return;
     text = String(text || '').trim();
@@ -424,6 +468,16 @@
     var handledLocally = false;
     try { handledLocally = handleLocalIntent(text); } catch (e) { handledLocally = false; }
     if (handledLocally) {
+      sending = false;
+      if (sendBtn) sendBtn.disabled = false;
+      return;
+    }
+
+    // Care pathway triage: route to the right kind of care (and a provider only
+    // when online care is appropriate) before falling back to the chat endpoint.
+    var handledCare = false;
+    try { handledCare = handleCarePathway(text); } catch (e) { handledCare = false; }
+    if (handledCare) {
       sending = false;
       if (sendBtn) sendBtn.disabled = false;
       return;
