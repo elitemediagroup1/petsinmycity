@@ -409,11 +409,25 @@
     var b = document.getElementById('lucy-widget-btn');
     if (b) b.style.display = 'flex';
   }
-  // Veterinary Care Engine integration: Lucy determines urgency and chooses the
-  // care pathway BEFORE recommending any provider. She never diagnoses, never
-  // replaces emergency or in-person care, and never recommends an online
-  // provider in an emergency. Dutch (or any provider) only appears for the
-  // online care path. See assets/vet-care-engine.js and docs/lucy-brain.md.
+    // Veterinary Care Engine integration: Lucy runs a natural consultation
+  // BEFORE recommending any provider. The architecture (vet-care-engine.js)
+  // is unchanged; this only improves the conversation experience.
+  // Flow: warm acknowledgement -> one optional clarifying question ->
+  // short education -> recommend the right care pathway -> only then
+  // introduce Dutch (online path only) -> end with a helpful follow-up.
+  // Lucy never diagnoses, never replaces emergency or in-person care, and
+  // never recommends a provider in an emergency. See docs/lucy-brain.md.
+  var carePending = null; // truthy while awaiting a clarifying reply
+
+  // Heuristic: does the message describe a concrete concern yet, or is it
+  // just a vague request to 'talk to a vet'? Used to decide whether ONE
+  // clarifying question adds value or only adds friction.
+  function careConcernIsClear(text) {
+    var t = String(text || '').toLowerCase();
+    if (t.split(/\s+/).filter(Boolean).length >= 8) return true;
+    return /(vomit|throw|diarrhea|stool|poop|pee|urinat|limp|paw|leg|ear|eye|skin|itch|scratch|rash|lump|bump|cough|sneez|breath|appetite|eating|drink|letharg|tired|weight|flea|tick|worm|teeth|tooth|gum|bleed|swell|pain|hurt|fever|seizure|shak|allerg|medication|prescription|refill|behav|anxiet|aggress|spay|neuter|vaccin|wound|cut|hot spot|infection)/.test(t);
+  }
+
   function handleCarePathway(text) {
     var VC = window.PIMCVetCare;
     if (!VC || typeof VC.recommend !== 'function') return false;
@@ -422,9 +436,13 @@
     var p = rec.path;
     var lines = [];
 
+    // Emergencies and poison control ALWAYS escalate immediately. Lucy never
+    // pauses to clarify and never mentions a provider in these cases.
     if (rec.isEmergency) {
-      // EMERGENCY / POISON: escalate immediately. Never mention a provider.
-      lines.push('**This may be an emergency.** ' + rec.reason);
+      carePending = null;
+      lines.push('I want to make sure your pet stays safe \u2014 this may be an emergency.');
+      lines.push('');
+      lines.push(rec.reason);
       lines.push('');
       lines.push('Please contact your nearest emergency vet right away. You can [find an emergency vet](/tools/emergency-finder/) near you, and for a suspected poisoning, call an animal poison control hotline as well.');
       appendBot(lines.join('\n'));
@@ -433,18 +451,48 @@
       return true;
     }
 
-    // Routine paths: explain the right kind of care and why.
+    // Step 1 + 2: for non-urgent care questions, open warmly and ask ONE
+    // brief clarifying question first \u2014 but only when the concern isn't
+    // already clear, and only once (carePending guards against re-asking).
+    if (!carePending && !careConcernIsClear(text)) {
+      carePending = { intent: true };
+      var ack = [];
+      ack.push("I'd be happy to help \u2014 let's figure out the best option together.");
+      ack.push('');
+      ack.push('So I can point you in the right direction, can you tell me a little more about what\u2019s going on with your pet?');
+      appendBot(ack.join('\n'));
+      conversation.push({ role: 'assistant', content: ack.join('\n') });
+      return true;
+    }
+
+    // We're now resolving the recommendation. Clear any pending state.
+    carePending = null;
+
+    // Step 3: a short, balanced explanation BEFORE naming any provider.
+    lines.push('Thanks for sharing that.');
+    lines.push('');
     lines.push(rec.reason);
     lines.push('');
-    lines.push('**' + p.label + '** is usually the right fit here. [Learn more](' + p.link + ').');
+    // Step 4: recommend the right care pathway, and explain why.
+    lines.push('Based on that, **' + p.label + '** is usually the right fit here. [Learn more](' + p.link + ').');
 
-    // Only the online path may surface a provider, and only after the guidance.
+    // Step 5: only on the online path, and only after the guidance above,
+    // does Lucy gently introduce a provider \u2014 as a trusted option, never
+    // as the hero, and always with the affiliate disclosure intact.
     if (rec.providers && rec.providers.length) {
       lines.push('');
-      lines.push('If you would like to talk with a licensed vet online for a non-urgent question, [our Online Vet guide](/online-vet/) explains how it works.');
+      lines.push('If you\u2019d like to talk with a licensed vet online for a non-urgent question, [our Online Vet guide](/online-vet/) explains how it works.');
       rec.providers.forEach(function (pr) {
-        lines.push('One trusted option is **' + pr.name + '**, an online veterinary care service. _(' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)_');
+        lines.push('One online veterinary service we trust is **' + pr.name + '**. _(' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)_');
       });
+    }
+
+    // Step 6: always end with an open, helpful follow-up question.
+    lines.push('');
+    if (rec.providers && rec.providers.length) {
+      lines.push('Would you like me to explain how online vets work, or help you decide whether this is something that should be seen in person?');
+    } else {
+      lines.push('Would you like help finding the right place near you, or is there anything else I can walk you through?');
     }
 
     appendBot(lines.join('\n'));
@@ -452,8 +500,7 @@
     try { if (window.pimcTrack) window.pimcTrack('lucy_care_pathway', { path: p.id, emergency: false, providers: (rec.providers||[]).length }); } catch (e) {}
     return true;
   }
-
-  async function send(text) {
+async function send(text) {
     if (sending) return;
     text = String(text || '').trim();
     if (!text) return;
