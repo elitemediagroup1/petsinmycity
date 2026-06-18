@@ -7,6 +7,7 @@
   <title>My Pets — PetsInMyCity</title>
   <meta name="description" content="Your private space for your pets. Stored only in your browser.">
   <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/platform-style.css">
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YVNBXJBZZ3"></script>
   <script>
@@ -95,7 +96,7 @@
     @media (prefers-reduced-motion:reduce){.mp-progress>span,.mp-score-num,.mp-journey-track>span{transition:none;}}
   </style>
 </head>
-<body>
+<body data-pimc-shell data-pimc-shell-bar="off" data-pimc-active="mypets">
   <div id="site-header"></div>
 
   <main class="mp-wrap" id="mp-app">
@@ -203,6 +204,7 @@
   <div id="site-footer"></div>
 
   <script src="/assets/script.js"></script>
+  <script src="/assets/platform-shell.js" defer></script>
   <script src="/assets/my-pets.js"></script>
 </body>
 </html>
