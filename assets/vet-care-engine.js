@@ -169,7 +169,9 @@
    * ====================================================================== */
 
   // TODO(affiliate): replace with the official Dutch tracking link (one place).
-  var DUTCH_AFFILIATE_URL = 'https://www.dutch.com/';
+  var PARTNER_CFG = (typeof global !== 'undefined' && global.PIMCPartners) ? global.PIMCPartners : null;
+ var DUTCH_PARTNER = PARTNER_CFG ? PARTNER_CFG.get('dutch') : null;
+ var DUTCH_AFFILIATE_URL = (DUTCH_PARTNER && DUTCH_PARTNER.url) ? DUTCH_PARTNER.url : 'https://www.dutch.com/';
 
   var PROVIDERS = [
     {
@@ -178,10 +180,10 @@
       carePath: 'online',
       // Conservative, category-level description ONLY. No pricing, coverage,
       // availability, or prescription guarantees — those require verification.
-      blurb: 'Dutch is an online veterinary care service that connects pet owners with licensed veterinarians.',
+      blurb: (DUTCH_PARTNER && DUTCH_PARTNER.blurb) ? DUTCH_PARTNER.blurb : 'Dutch is an online veterinary care service that connects pet owners with licensed veterinarians.',
       url: DUTCH_AFFILIATE_URL,
       affiliate: true,            // requires disclosure + rel="sponsored"
-      rel: 'sponsored noopener',  // applied to outbound links
+      rel: (DUTCH_PARTNER && DUTCH_PARTNER.rel) ? DUTCH_PARTNER.rel : 'sponsored noopener',  // applied to outbound links
       pending: true               // true until live link + Dutch-specific content confirmed
     }
     // Future providers (Vetster, AirVet, BetterVet, Pawp, …) plug in here with
@@ -189,7 +191,7 @@
   ];
 
   // Affiliate disclosure text reused wherever a provider link appears.
-  var AFFILIATE_DISCLOSURE = 'PetsInMyCity may earn a small commission if you sign up through some partner links, at no extra cost to you. This never affects which care path we recommend.';
+  var AFFILIATE_DISCLOSURE = (PARTNER_CFG && PARTNER_CFG.disclosure) ? PARTNER_CFG.disclosure : 'PetsInMyCity may earn a small commission if you sign up through some partner links, at no extra cost to you. This never affects which care path we recommend.';
 
   function providersForPath(pathId) {
     return PROVIDERS.filter(function (p) { return p.carePath === pathId; });
