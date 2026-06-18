@@ -104,13 +104,13 @@
   // Pet name: 'my dog Bella', 'his name is Max', 'named Luna'. Conservative
   // \u2014 only captures a single capitalized-ish token to avoid false positives.
   function detectPetName(raw) {
-    var m = raw.match(/\b(?:dog|cat|puppy|kitten|pup)\s+(?:named|called)\s+([A-Za-z][a-zA-Z'-]{1,20})/);
-    if (!m) m = raw.match(/\b(?:name(?:'s| is)?|named|called)\s+([A-Z][a-zA-Z'-]{1,20})/);
-    if (!m) m = raw.match(/\bmy\s+(?:dog|cat|puppy|kitten|pup)\s+([A-Z][a-zA-Z'-]{1,20})\b/);
+    var m = raw.match(/\b(?:[Dd]og|[Cc]at|[Pp]uppy|[Kk]itten|[Pp]up)\s+(?:named|called|Named|Called)\s+([A-Z][a-zA-Z'-]{1,20})/);
+    if (!m) m = raw.match(/\b(?:[Nn]ame(?:'s| is)?|[Nn]amed|[Cc]alled)\s+([A-Z][a-zA-Z'-]{1,20})/);
+    if (!m) m = raw.match(/\b[Mm]y\s+(?:dog|cat|puppy|kitten|pup|Dog|Cat|Puppy|Kitten|Pup)\s+([A-Z][a-zA-Z'-]{1,20})\b/);
     if (m) {
       var name = m[1];
       // avoid common non-name words that can follow 'my dog'
-      if (/^(is|has|was|got|keeps|seems|will|wont|can|cant|needs|ate|threw|the|a|an)$/i.test(name)) return null;
+      if (/^(Is|Has|Was|Got|Keeps|Seems|Will|Wont|Can|Cant|Needs|Ate|Threw|The|A|An|Just|Really|Now|Still)$/i.test(name)) return null;
       return name.charAt(0).toUpperCase() + name.slice(1);
     }
     return null;
@@ -118,10 +118,10 @@
 
   // Preferred name for the human: 'I'm Sarah', 'call me Sarah', 'this is Sarah'.
   function detectPreferredName(raw) {
-    var m = raw.match(/\b(?:i'?m|i am|call me|this is|my name is|it'?s)\s+([A-Z][a-zA-Z'-]{1,20})\b/);
+    var m = raw.match(/\b(?:[Ii]'?[Mm]|[Ii] [Aa][Mm]|[Cc]all me|[Tt]his is|[Mm]y name is|[Ii]t'?s)\s+([A-Z][a-zA-Z'-]{1,20})\b/);
     if (m) {
       var name = m[1];
-      if (/^(not|so|just|here|good|fine|okay|ok|sure|worried|concerned|trying|looking|wondering)$/i.test(name)) return null;
+      if (/^(Not|So|Just|Here|Good|Fine|Okay|Ok|Sure|Worried|Concerned|Trying|Looking|Wondering|Really|Very|Still)$/i.test(name)) return null;
       return name.charAt(0).toUpperCase() + name.slice(1);
     }
     return null;
