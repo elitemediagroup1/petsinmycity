@@ -56,6 +56,12 @@
     .mp-score-num{font-family:'Nunito',sans-serif;font-weight:800;font-size:3rem;line-height:1;color:var(--amber-dark);}
     .mp-score-msg{color:var(--charcoal);font-weight:700;}
     .mp-score-frame{color:var(--gray);font-size:.86rem;margin:10px 0 0;font-style:italic;}
+    .mp-journey{margin:6px 0 14px;}
+    .mp-journey-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 8px;}
+    .mp-journey-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--amber-dark);}
+    .mp-journey-pct{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.15rem;color:var(--sage-dark,#16a34a);line-height:1;}
+    .mp-journey-track{height:14px;border-radius:999px;background:var(--border);overflow:hidden;}
+    .mp-journey-track > span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--amber,#f59e0b),var(--sage-dark,#22c55e));transition:width .6s ease;}
     .mp-cats{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:10px;}
     .mp-cat{}
     .mp-cat-head{display:flex;justify-content:space-between;font-size:.9rem;color:var(--charcoal);font-weight:700;margin:0 0 4px;}
@@ -86,7 +92,7 @@
     .mp-hidden{display:none !important;}
     .mp-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
     @media (min-width:560px){.mp-shortcuts{grid-template-columns:1fr 1fr;}}
-    @media (prefers-reduced-motion:reduce){.mp-progress>span,.mp-score-num{transition:none;}}
+    @media (prefers-reduced-motion:reduce){.mp-progress>span,.mp-score-num,.mp-journey-track>span{transition:none;}}
   </style>
 </head>
 <body>
@@ -136,17 +142,24 @@
       </section>
 
       <section class="mp-card" aria-labelledby="mp-score-title">
-        <h2 id="mp-score-title">Lucy Care Score&trade;</h2>
-        <div class="mp-score-top">
+        <h2 id="mp-score-title">Lucy Care Journey&trade;</h2>
+        <div class="mp-journey">
+            <div class="mp-journey-row">
+              <span class="mp-journey-label">Journey Progress</span>
+              <span class="mp-journey-pct" id="mp-journey-pct">0%</span>
+            </div>
+            <div class="mp-journey-track" id="mp-journey-track" role="progressbar" aria-label="Care Journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="mp-journey-bar"></span></div>
+          </div>
+          <div class="mp-score-top">
           <div class="mp-score-num" id="mp-score-num" aria-describedby="mp-score-frame">0</div>
           <div class="mp-score-msg" id="mp-score-msg"></div>
         </div>
         <ul class="mp-cats" id="mp-cats"></ul>
-        <p class="mp-score-frame" id="mp-score-frame">Lucy Care Score&trade; is a lifestyle, preparedness, and organization snapshot &mdash; not a medical evaluation. It does not diagnose and does not measure how healthy your pet is.</p>
+        <p class="mp-score-frame" id="mp-score-frame">Your Lucy Care Journey&trade; celebrates the steps you&rsquo;ve taken to care for your pet &mdash; a lifestyle, preparedness, and organization snapshot. It&rsquo;s not a medical evaluation, a diagnosis, or a measure of how good a pet parent you are.</p>
       </section>
 
       <section class="mp-card" aria-labelledby="mp-missions-title">
-        <h2 id="mp-missions-title">Next steps for a higher score</h2>
+        <h2 id="mp-missions-title">Your next milestones</h2>
         <ul class="mp-missions" id="mp-missions"></ul>
       </section>
 
