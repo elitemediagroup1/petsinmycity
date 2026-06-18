@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Today \u2014 PetsInMyCity</title>
-  <meta name="description" content="Your daily PetsInMyCity hub: Lucy, My Pets, your Care Journey, reminders and quick actions \u2014 all in one place.">
+  <title>Today — PetsInMyCity</title>
+  <meta name="description" content="Your daily PetsInMyCity hub: Lucy, My Pets, your Care Journey, reminders and quick actions — all in one place.">
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/platform-style.css">
   <!-- Google Analytics 4 -->
@@ -25,13 +25,13 @@
   <main id="today" class="mp-wrap">
     <p class="pds-eyebrow">Welcome back</p>
     <h1 class="pds-h1" id="today-greeting">Today</h1>
-    <p class="pds-lede" id="today-sub">Your pets, Lucy, and everything that matters \u2014 in one calm place.</p>
+    <p class="pds-lede" id="today-sub">Your pets, Lucy, and everything that matters — in one calm place.</p>
 
     <!-- Lucy Check-in -->
     <section class="pds-section" aria-labelledby="m-lucy-h">
       <div class="pds-card">
         <div class="pds-card__head">
-          <div class="pds-card__ico" aria-hidden="true">\uD83D\uDC3E</div>
+          <div class="pds-card__ico" aria-hidden="true">🐾</div>
           <div>
             <h2 class="pds-card__title" id="m-lucy-h">Lucy check-in</h2>
             <p class="pds-card__sub">Your friendly pet guide is here whenever you need her.</p>
@@ -73,10 +73,10 @@
     <section class="pds-section" aria-labelledby="m-actions-h" style="margin-top:24px;">
       <div class="pds-section__head"><h2 class="pds-h2" id="m-actions-h">Quick actions</h2></div>
       <div class="pds-actions">
-        <a class="pds-action" href="/pet-emergency-planner/"><span class="pds-action__ico" aria-hidden="true">\uD83D\uDEA8</span>Emergency Planner</a>
-        <a class="pds-action" href="/find-a-vet/"><span class="pds-action__ico" aria-hidden="true">\uD83D\uDC8A</span>Find a Vet</a>
-        <a class="pds-action" href="/my-pets/"><span class="pds-action__ico" aria-hidden="true">\u2764\uFE0F</span>My Pets</a>
-        <a class="pds-action" href="/tools/"><span class="pds-action__ico" aria-hidden="true">\uD83E\uDDF0</span>Paw Tools</a>
+        <a class="pds-action" href="/pet-emergency-planner/"><span class="pds-action__ico" aria-hidden="true">🚨</span>Emergency Planner</a>
+        <a class="pds-action" href="/find-a-vet/"><span class="pds-action__ico" aria-hidden="true">💊</span>Find a Vet</a>
+        <a class="pds-action" href="/my-pets/"><span class="pds-action__ico" aria-hidden="true">❤️</span>My Pets</a>
+        <a class="pds-action" href="/tools/"><span class="pds-action__ico" aria-hidden="true">🧰</span>Paw Tools</a>
       </div>
     </section>
 
@@ -115,7 +115,7 @@
 
     function rows(items){
       return '<ul class="pds-list">'+items.map(function(it){
-        return '<li class="pds-row"><span class="pds-row__ico" aria-hidden="true">'+(it.ico||'\u2022')+'</span>'+
+        return '<li class="pds-row"><span class="pds-row__ico" aria-hidden="true">'+(it.ico||'•')+'</span>'+
           '<span class="pds-row__body"><p class="pds-row__title">'+esc(it.title)+'</p>'+
           (it.meta?'<p class="pds-row__meta">'+esc(it.meta)+'</p>':'')+'</span></li>';
       }).join('')+'</ul>';
@@ -130,48 +130,42 @@
 
     function render(){
       var P = window.PIMC;
-      if (!P){ return; } // shell/state not loaded yet
+      if (!P){ return; }
       var hasPets = P.petCount() > 0;
       var pet = P.activePet();
 
-      // Greeting
-      $('today-greeting').textContent = timeGreeting() + (pet && pet.name ? ', ' + pet.name + '\u2019s day' : '');
+      $('today-greeting').textContent = timeGreeting() + (pet && pet.name ? ', ' + pet.name + '’s day' : '');
       if (pet && pet.name){ $('m-lucy-msg').textContent = 'How can I help with ' + pet.name + ' today?'; }
 
-      // My Pets summary
       if (hasPets){
         $('m-pets-body').innerHTML = '<div class="pds-stat"><span class="pds-stat__num">'+P.petCount()+'</span>'+
           '<span class="pds-stat__label">'+(P.petCount()===1?'pet in your circle':'pets in your circle')+'</span></div>'+
-          '<p class="pds-row__meta" style="margin-top:8px;">'+esc(pet.name||'Your pet')+(pet.breed?' \u00b7 '+esc(pet.breed):'')+(pet.species?' ('+esc(pet.species)+')':'')+'</p>';
+          '<p class="pds-row__meta" style="margin-top:8px;">'+esc(pet.name||'Your pet')+(pet.breed?' · '+esc(pet.breed):'')+(pet.species?' ('+esc(pet.species)+')':'')+'</p>';
       } else {
-        $('m-pets-body').innerHTML = emptyState('\u2764\uFE0F','No pets yet','Add your first pet to unlock a personalized Today.','Create My Pets profile','/my-pets/');
+        $('m-pets-body').innerHTML = emptyState('❤️','No pets yet','Add your first pet to unlock a personalized Today.','Create My Pets profile','/my-pets/');
       }
 
-      // Care Journey summary
       var cj = P.careJourney();
       if (cj && typeof cj.pct === 'number'){
-        $('m-journey-body').innerHTML = '<div class="pds-progress__row"><span class="pds-row__title">'+esc(cj.petName)+'\u2019s journey</span>'+
+        $('m-journey-body').innerHTML = '<div class="pds-progress__row"><span class="pds-row__title">'+esc(cj.petName)+'’s journey</span>'+
           '<span class="pds-progress__pct">'+cj.pct+'%</span></div>'+
           '<div class="pds-progress" role="progressbar" aria-label="Care Journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+cj.pct+'"><span style="width:'+cj.pct+'%"></span></div>'+
-          '<p class="pds-row__meta" style="margin-top:10px;">You\u2019re making great progress. Every small step helps.</p>';
+          '<p class="pds-row__meta" style="margin-top:10px;">You’re making great progress. Every small step helps.</p>';
       } else if (hasPets){
-        $('m-journey-body').innerHTML = emptyState('\uD83C\uDF31','Start the journey','Complete '+esc((pet&&pet.name)||'your pet')+'\u2019s profile to see Care Journey progress.','Continue','/my-pets/');
+        $('m-journey-body').innerHTML = emptyState('🌱','Start the journey','Complete '+esc((pet&&pet.name)||'your pet')+'’s profile to see Care Journey progress.','Continue','/my-pets/');
       } else {
-        $('m-journey-body').innerHTML = emptyState('\uD83C\uDF31','Your Care Journey','Add a pet to begin a warm, encouraging Care Journey.', null, null);
+        $('m-journey-body').innerHTML = emptyState('🌱','Your Care Journey','Add a pet to begin a warm, encouraging Care Journey.', null, null);
       }
 
-      // Reminders
       var rem = P.reminders();
-      $('m-rem-body').innerHTML = rem.length ? rows(rem) : emptyState('\uD83D\uDD14','No reminders yet','Reminders will appear here as you add details like birthdays.', null, null);
+      $('m-rem-body').innerHTML = rem.length ? rows(rem) : emptyState('🔔','No reminders yet','Reminders will appear here as you add details like birthdays.', null, null);
 
-      // Recent activity
       var act = P.recentActivity();
-      $('m-act-body').innerHTML = act.length ? rows(act) : emptyState('\uD83D\uDD52','Nothing here yet','Your recent pet updates will show up here.', null, null);
+      $('m-act-body').innerHTML = act.length ? rows(act) : emptyState('🕒','Nothing here yet','Your recent pet updates will show up here.', null, null);
 
       track('today_view', { has_pets: hasPets });
     }
 
-    // Lucy CTA: open chat widget if available, else navigate.
     document.addEventListener('click', function(e){
       var a = e.target.closest && e.target.closest('#m-lucy-ask');
       if (!a) return;
