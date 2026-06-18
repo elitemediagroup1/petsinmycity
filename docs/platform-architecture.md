@@ -191,6 +191,28 @@ The guiding principle: **build the simplest thing today that the future can grow
 - **Future AI memory:** A consent-gated memory store (pet profile facts, preferences, conversation context) that Lucy can draw on — opt-in, deletable, and never used to make medical claims. See [Lucy Brain](./lucy-brain.md).
 - **Future integrations:** Exposed only through the versioned API with explicit user consent (telehealth, insurance, wearables, calendars).
 
+### 4.2.1 Lucy Decision Engine (parent orchestration layer)
+
+As of Phase 2.3, Lucy is coordinated by a **Lucy Decision Engine** (`assets/lucy-decision-engine.js`, exposed as `window.PIMCLucy`). It is the parent orchestration layer that makes Lucy feel like a companion rather than a router: she understands the concern, determines urgency, asks only the minimum clarifying questions, selects the right care pathway, explains why, recommends the appropriate next step, and ends with a helpful follow-up.
+
+The engine is **provider-agnostic**. The existing Veterinary Care Engine (`assets/vet-care-engine.js`, `window.PIMCVetCare`) is **not replaced** — it becomes one module within the Decision Engine. Dutch remains a provider inside that module; Dutch is never the engine.
+
+**Modules (registry).** Capabilities are registered in a provider-agnostic module registry so new ones can be added without redesigning Lucy or the platform:
+
+- **Veterinary Decision Engine** — wraps `PIMCVetCare` for non-emergency care pathways.
+- **Emergency Decision Engine** — also delegates to `PIMCVetCare` so emergency/poison detection stays a single source of truth and is never weakened.
+- **Local Discovery Engine** — local vet/groomer/boarding discovery.
+- **Learning Engine** — educational content and explanations.
+- **Product Recommendation Engine** — reserved for future product guidance.
+- **Affiliate Recommendation Engine** — surfaces trusted partners with disclosure, never as the focus.
+- **My Pets Engine** — pet profile context.
+- **Lucy Care Journey Engine** — longer-term care guidance.
+- **Notification Engine** — reserved for future reminders/notifications.
+
+**Conversation memory (in-session only).** The engine keeps a lightweight memory of what the owner has already shared this session — preferred name, pet name, species, approximate age, symptoms, city, and ZIP — so Lucy doesn't ask twice and can speak to the pet by name. Nothing is persisted: there is no account, no cookie, and no storage. Memory lives in a closure for the page session and is cleared by `reset()`, which Lucy calls when the chat is closed. This is distinct from the consent-gated, opt-in **Future AI memory** described above, which is a separate, persistent, deletable store.
+
+**Decision philosophy.** Every health conversation follows the same sequence: understand the concern → determine urgency → ask the minimum clarifying questions → select the correct care pathway → explain why → recommend the appropriate resource → end with another helpful question. Emergencies short-circuit the sequence and escalate immediately, never naming a provider. Affiliate disclosures and the existing analytics events are preserved unchanged.
+
 ### 4.3 Data portability principle
 The localStorage schema designed for My Pets is intentionally **cloud-shaped**: versioned and multi-pet-ready. When sync arrives, the migration is "upload the same object," not "redesign the model." This is the single most important technical decision for long-term scalability.
 
