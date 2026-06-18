@@ -24,6 +24,7 @@ Anything beyond the active set lives in **Next** or **Backlog** — not "In Prog
 1. **Phase 1 — Foundation Cleanup & Trust Completion** — shipped (Trust Center, Editorial Standards, this checklist live). Kept here only while the "last reviewed" pattern and the nav-placement decision wrap up.
 2. **Phase 2 — Lucy: Premium Welcome + Chat Polish** — shipped (Lucy 2.0 first-visit welcome, suggestion cards, premium chat UI).
 3. **Phase 2 — Lucy Care Companion™ Notification Engine** — in progress (provider-agnostic communication foundation + Notification Preferences page).
+4. **Phase 2 / Phase 8 — PetsInMyCity Platform Shell v1** — in progress (shared application shell + permanent platform navigation: Home/Today, Lucy, My Pets, Discover, Me; Emergency always reachable; shared design system; Today dashboard). Foundation for the future Website/PWA/iOS/Android surfaces.
 
   Foundation (Phase 1) has shipped, so Phase 2 product work is now active. Still respecting the 3–5 rule: nothing new enters "In Progress" until one of the above moves out.
 
@@ -71,6 +72,7 @@ Lucy is the AI pet assistant and the heart of the platform. Behavior is governed
   - Amazon affiliate approach defined.
   - Lucy 2.0 premium first-visit welcome experience (welcome modal, primary actions, future-ready media container).
   - Lucy chat polish: suggestion cards, timestamps, premium UI, empty state.
+Lucy Care Journey™ shipped — premium, encouraging progress experience (Journey Progress bar + percentage, milestone language, supportive Lucy copy) replacing the user-facing Care Score, with calculation logic, storage schema, and analytics events unchanged.
 - **In Progress**
   - Lucy Care Companion™ Notification Engine — unified, provider-agnostic communication foundation (Email, SMS, Browser, future Push) + Notification Preferences page (\`/notifications/\`).
 - **Next**
@@ -95,6 +97,7 @@ Owner pet profiles and personalized context. See \`docs/my-pets-mvp-plan.md\`.
 
 - **Completed**
   - My Pets entry point exists on the site.
+Lucy Care Journey™ experience live on the My Pets page (rebrand + progress UX over the existing, unchanged score calculation).
 - **In Progress**
   - _None active. Do not start new My Pets features during Phase 1._
 - **Next**
@@ -190,6 +193,7 @@ The technical platform, performance, and architecture. See \`docs/platform-archi
   - Static, fast site on Netlify with serverless functions (Lucy chat, places search, pet tools, IndexNow relay).
   - Clean URL structure and sitemap/robots.
   - Shared header/footer injected site-wide for consistency.
+Platform Shell v1 — shared application shell, permanent platform navigation, and shared design system that future PWA/native surfaces will reuse (incremental, opt-in adoption; marketing pages unchanged).
 - **In Progress**
   - _None active._
 - **Next**
