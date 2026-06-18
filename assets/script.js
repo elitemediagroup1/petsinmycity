@@ -134,6 +134,14 @@ if(h){h.innerHTML = buildHeader();}
 var f = document.getElementById('site-footer') || document.querySelector('.site-footer');
 if(f){f.innerHTML = buildFooter();}
 setActiveNav();
+// Lucy Decision Engine: parent orchestration layer (loads before Lucy).
+if(!document.getElementById('lucy-decision-engine-tag')){
+var lde = document.createElement('script');
+lde.id = 'lucy-decision-engine-tag';
+lde.src = '/assets/lucy-decision-engine.js';
+lde.defer = true;
+document.head.appendChild(lde);
+}
 // Lucy AI widget: appended to body via lucy.js loaded from index pages.
 if(!document.getElementById('lucy-script-tag')){
 var ls = document.createElement('script');
