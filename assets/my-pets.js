@@ -1,4 +1,4 @@
-/* PetsInMyCity — My Pets + Lucy Care Score(TM)
+/* PetsInMyCity — My Pets + Lucy Care Journey(TM)
    MVP: localStorage only. No login, accounts, database, backend, cloud sync.
    Storage key: pimc-my-pets-v1 (versioned, multi-pet-ready).
    Privacy: all data stays in this browser; never uploaded; no PII sent to GA4. */
@@ -171,9 +171,9 @@
     showHome();
   }
 
-  /* ---------- Lucy Care Score(TM) ----------
+  /* ---------- Lucy Care Journey(TM) ----------
      Lifestyle, preparedness, and organization snapshot. NOT medical. No diagnosis.
-     7 categories, each worth up to ~14-15 pts, total 100. Rewards progress. */
+     7 categories, each worth up to ~14-15 pts, total 100. This is Journey Progress, not a grade. */
   function nonEmpty(v){ return v !== undefined && v !== null && String(v).trim() !== ''; }
   function plannerDone(){ try { return !!localStorage.getItem('pimc-pet-emergency-planner'); } catch(e){ return false; } }
 
@@ -216,14 +216,14 @@
   };
 
   function scoreMessage(total){
-    if (total >= 100) return 'Amazing — you are fully prepared!';
-    if (total >= 80) return 'Wonderful. You are nearly there.';
-    if (total >= 50) return 'Great start. Let us keep going.';
-    if (total >= 25) return 'Good beginning — a few quick wins ahead.';
-    return 'Welcome! Let us build your pet\u2019s profile.';
+    if (total >= 100) return 'You’ve built a wonderful Care Journey — every step is complete.';
+    if (total >= 80) return 'You’re doing great — just a few gentle steps to go.';
+    if (total >= 50) return 'You’re making great progress. Let’s keep going together.';
+    if (total >= 25) return 'You’re off to a wonderful start. Every small step helps.';
+    return 'Welcome! Let’s begin your pet’s Care Journey together.';
   }
 
-  /* ---------- Missions (next steps) ---------- */
+  /* ---------- Milestones (next steps in the Care Journey) ---------- */
   function buildMissions(pet, score){
     var m = [];
     if (!nonEmpty(pet.emergencyContact)) m.push({ pts:5, txt:'Add an emergency contact', field:'emergencyContact' });
@@ -288,6 +288,9 @@
     save(store);
     $('mp-score-num').textContent = score.total;
     $('mp-score-msg').textContent = scoreMessage(score.total);
+    var jb = $('mp-journey-bar'); if (jb) { jb.style.width = Math.max(0, Math.min(100, score.total)) + '%'; }
+    var jp = $('mp-journey-pct'); if (jp) { jp.textContent = score.total + '%'; }
+    var jt = $('mp-journey-track'); if (jt) { jt.setAttribute('aria-valuenow', score.total); }
     var cats = $('mp-cats'); cats.innerHTML = '';
     Object.keys(CAT_META).forEach(function(k){
       var meta = CAT_META[k]; var val = score.categories[k]||0; var pct = Math.round(val/meta.max*100);
@@ -299,7 +302,7 @@
     });
     // missions
     var missions = buildMissions(pet, score); var ml = $('mp-missions'); ml.innerHTML = '';
-    if(!missions.length){ var done=document.createElement('li'); done.className='mp-cat-why'; done.textContent='You have completed every suggested step — wonderful!'; ml.appendChild(done); }
+    if(!missions.length){ var done=document.createElement('li'); done.className='mp-cat-why'; done.textContent='You’ve completed every milestone Lucy suggested — beautifully done!'; ml.appendChild(done); }
     missions.forEach(function(ms){
       var li=document.createElement('li');
       var btn=document.createElement('button'); btn.type='button'; btn.className='mp-mission';
