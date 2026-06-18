@@ -408,6 +408,9 @@
     p.classList.remove('open');
     var b = document.getElementById('lucy-widget-btn');
     if (b) b.style.display = 'flex';
+    // Conversation memory is in-session only. Closing the chat ends the
+    // session, so clear it \u2014 nothing is persisted.
+    try { if (window.PIMCLucy && window.PIMCLucy.reset) window.PIMCLucy.reset(); } catch (e) {}
   }
     // Veterinary Care Engine integration: Lucy runs a natural consultation
   // BEFORE recommending any provider. The architecture (vet-care-engine.js)
@@ -429,6 +432,27 @@
   }
 
   function handleCarePathway(text) {
+    // Phase 2.3: when the Lucy Decision Engine is present, it becomes the
+    // single brain \u2014 it remembers what was shared this session and
+    // orchestrates the full consultation (understand, urgency, minimal
+    // clarifying question, pathway, explanation, recommendation, follow-up).
+    // We keep the original self-contained logic below as a graceful fallback
+    // in case the engine fails to load, so Lucy never breaks.
+    var LDE = window.PIMCLucy;
+    if (LDE && typeof LDE.orchestrate === 'function') {
+      try { LDE.remember(text); } catch (e) {}
+      var plan = null;
+      try { plan = LDE.orchestrate(text); } catch (e) { plan = null; }
+      if (!plan) return false; // not a care conversation \u2014 let Lucy handle it
+      var msg = plan.lines.join('\n');
+      appendBot(msg);
+      conversation.push({ role: 'assistant', content: msg });
+      if (plan.analytics && plan.analytics.event) {
+        try { if (window.pimcTrack) window.pimcTrack(plan.analytics.event, plan.analytics.params || {}); } catch (e) {}
+      }
+      return true;
+    }
+    // ---- Fallback (engine unavailable): original in-file logic ----
     var VC = window.PIMCVetCare;
     if (!VC || typeof VC.recommend !== 'function') return false;
     var rec = VC.recommend(text);
