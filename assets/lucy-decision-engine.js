@@ -362,9 +362,9 @@
     // guidance, with the affiliate disclosure preserved verbatim.
     if (rec.providers && rec.providers.length) {
       lines.push('');
-      lines.push('If you\u2019d like to talk with a licensed vet online for a non-urgent question, [our Online Vet guide](/online-vet/) explains how it works.');
+      lines.push('For a non-urgent question like this, our [Online Vet guide](/online-vet/) is the best place to start \u2014 it explains how online visits work, when they help, and when to choose in-person care instead.');
       rec.providers.forEach(function (pr) {
-        lines.push('One online veterinary service we trust is ' + pr.name + '. (' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)');
+        lines.push('In that guide, one online service we trust is ' + pr.name + '. (' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)');
       });
     }
 
