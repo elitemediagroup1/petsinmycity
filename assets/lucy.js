@@ -464,20 +464,22 @@
     conversation.push({ role: 'user', content: text });
     try { if (window.gtag) window.gtag('event', 'lucy_message_sent', { message_count: conversation.length }); } catch (e) {}
 
-    // Local-service intent: use the working Google Places endpoint instead of a generic chat answer.
-    var handledLocally = false;
-    try { handledLocally = handleLocalIntent(text); } catch (e) { handledLocally = false; }
-    if (handledLocally) {
+    // Care pathway triage FIRST: determine urgency and the right kind of care
+    // (emergency, poison, local, specialist, online, behavioral) before anything
+    // else. The engine returns no path for pure 'find X near me' requests, so
+    // those fall through to local search exactly as before.
+    var handledCare = false;
+    try { handledCare = handleCarePathway(text); } catch (e) { handledCare = false; }
+    if (handledCare) {
       sending = false;
       if (sendBtn) sendBtn.disabled = false;
       return;
     }
 
-    // Care pathway triage: route to the right kind of care (and a provider only
-    // when online care is appropriate) before falling back to the chat endpoint.
-    var handledCare = false;
-    try { handledCare = handleCarePathway(text); } catch (e) { handledCare = false; }
-    if (handledCare) {
+    // Local-service intent: use the working Google Places endpoint instead of a generic chat answer.
+    var handledLocally = false;
+    try { handledLocally = handleLocalIntent(text); } catch (e) { handledLocally = false; }
+    if (handledLocally) {
       sending = false;
       if (sendBtn) sendBtn.disabled = false;
       return;
