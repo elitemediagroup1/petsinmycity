@@ -8,6 +8,7 @@
   <meta name="description" content="Choose how and when Lucy reaches out. Warm, helpful nudges only \u2014 stored privately in your browser.">
   <link rel="canonical" href="https://petsinmycity.com/notifications/">
   <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/platform-style.css">
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YVNBXJBZZ3"></script>
   <script>
@@ -66,7 +67,7 @@
     @media (prefers-reduced-motion: reduce){ .nt-switch .nt-track,.nt-switch .nt-thumb,.nt-btn{transition:none;} }
   </style>
 </head>
-<body>
+<body data-pimc-shell data-pimc-shell-bar="off" data-pimc-active="me">
   <div id="site-header"></div>
 
   <main class="nt-wrap" id="nt-app">
@@ -127,6 +128,7 @@
   <div id="site-footer"></div>
 
   <script src="/assets/script.js"></script>
+  <script src="/assets/platform-shell.js" defer></script>
   <script src="/assets/notifications.js"></script>
   <script src="/assets/notification-preferences.js"></script>
 </body>
