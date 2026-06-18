@@ -219,8 +219,19 @@
     track('platform_shell_view', { section: curr || 'unknown' });
   }
 
-  if (document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', mount); }
-  else { mount(); }
+  /* Re-apply the active nav item from the current section. Idempotent. */
+  function setActive(curr){
+    var items = document.querySelectorAll('.pshell-nav__item[data-nav]');
+    for (var i=0;i<items.length;i++){
+      if (items[i].getAttribute('data-nav') === curr){ items[i].setAttribute('aria-current','page'); }
+      else { items[i].removeAttribute('aria-current'); }
+    }
+  }
+  function boot(){ mount(); setActive(activeId()); }
+  if (document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); }
+  else { boot(); }
+  /* Re-assert after full load in case the active section settled late. */
+  try{ window.addEventListener('load', function(){ setActive(activeId()); }); }catch(e){}
 
   window.PIMCShell = { mount: mount, nav: NAV };
 })();
