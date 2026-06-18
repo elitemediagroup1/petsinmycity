@@ -141,6 +141,29 @@ Future categories: pet-friendly restaurants, pet-friendly workplaces, mobile vet
 - `Animal Shelter` and `Rescue` → relate to → `Pet Adoption` domain and adoption content.
 - `Groomer` → relates to → `Grooming` domain and grooming guides.
 
+### Veterinary Care entities (Veterinary Care Engine)
+
+Veterinary care is modeled as a set of **care paths**, not as a single "vet" node. The Veterinary Care Engine (`assets/vet-care-engine.js`) is the source of truth for these entities; Lucy routes to a care path before recommending any provider.
+
+Care path entities:
+
+- `Emergency Veterinary Care` → relates to → `Emergency` domain, `Emergency Vet` local category, and the `Emergency Finder` tool. Highest urgency.
+- `Poison Control` → relates to → `Emergency` domain and toxin/ingestion content. Highest urgency.
+- `Local Primary Veterinarian` → relates to → `Veterinarian` local category and the `Find a Vet` page. For anything needing a hands-on exam.
+- `Veterinary Specialist` → relates to → `Veterinarian` (referral) and condition-specific `Pet Health` content.
+- `Online Veterinary Care` → relates to → the `Online Vet Hub` (`/online-vet/`) and is the only care path that may surface a provider entity.
+- `Behavioral Support` → relates to → `Training` and `Behavior` domains.
+
+Provider entities (children of `Online Veterinary Care`):
+
+- `Online Vet Provider` is an entity TYPE. Individual providers are instances of it, registered in the provider config. They are children of `Online Veterinary Care` → never the primary veterinary-care entity, and never a substitute for emergency or in-person care.
+- `Dutch` → is an instance of → `Online Vet Provider` (one provider among several possible). It relates to → `Online Veterinary Care` only. It is an affiliate entity (see Section 10) and therefore sits at the bottom of the Recommendation Graph: it never determines a care path and is never surfaced in an emergency. Future providers (Vetster, AirVet, BetterVet, Pawp, etc.) are added as sibling instances of `Online Vet Provider`.
+
+Hard relationship rules:
+
+- `Emergency Veterinary Care` and `Poison Control` → NEVER relate to → any `Online Vet Provider`.
+- `Online Vet Provider` → relates to → `Online Veterinary Care` ONLY (never to `Local Primary Veterinarian`, `Specialist`, or `Emergency`).
+
 ---
 
 ## Section 5 — Tool Graph
