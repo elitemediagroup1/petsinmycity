@@ -24,6 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/platform-style.css">
 <style>
   .lucy-page-shell{font-family:Inter,system-ui,sans-serif;color:var(--charcoal,#1C1917);background:#fff}
   .lucy-hero{background:linear-gradient(135deg,var(--cream,#FFFBF5) 0%,var(--amber-light,#FEF3C7) 100%);padding:48px 24px;text-align:center;border-bottom:2px solid var(--amber-light,#FEF3C7)}
@@ -93,7 +94,7 @@
 }
 </script>
 </head>
-<body class="lucy-page-shell">
+<body class="lucy-page-shell" data-pimc-shell data-pimc-shell-bar="off" data-pimc-active="lucy">
 <div id="site-header"></div>
 
 <section class="lucy-hero">
@@ -194,7 +195,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 <script src="/assets/script.js"></script>
-<script src="/assets/lucy.js" defer></script>
+<script src="/assets/platform-shell.js" defer></script>
+  <script src="/assets/lucy.js" defer></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-YVNBXJBZZ3"></script>
 <script>
