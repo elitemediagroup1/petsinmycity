@@ -474,7 +474,7 @@
     lines.push(rec.reason);
     lines.push('');
     // Step 4: recommend the right care pathway, and explain why.
-    lines.push('Based on that, **' + p.label + '** is usually the right fit here. [Learn more](' + p.link + ').');
+    lines.push('Based on that, ' + p.label + ' is usually the right fit here. [Learn more](' + p.link + ').');
 
     // Step 5: only on the online path, and only after the guidance above,
     // does Lucy gently introduce a provider \u2014 as a trusted option, never
@@ -483,7 +483,7 @@
       lines.push('');
       lines.push('If you\u2019d like to talk with a licensed vet online for a non-urgent question, [our Online Vet guide](/online-vet/) explains how it works.');
       rec.providers.forEach(function (pr) {
-        lines.push('One online veterinary service we trust is **' + pr.name + '**. _(' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)_');
+        lines.push('One online veterinary service we trust is ' + pr.name + '. (' + pr.name + ' is an affiliate partner; PetsInMyCity may earn a small commission, at no extra cost to you. This never changes our guidance.)');
       });
     }
 
