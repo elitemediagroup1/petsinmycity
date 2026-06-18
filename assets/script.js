@@ -142,6 +142,14 @@ ls.src = '/assets/lucy.js';
 ls.defer = true;
 document.head.appendChild(ls);
 }
+// Veterinary Care Engine: provider-agnostic care decision engine used by Lucy.
+if(!document.getElementById('vet-care-engine-tag')){
+var ve = document.createElement('script');
+ve.id = 'vet-care-engine-tag';
+ve.src = '/assets/vet-care-engine.js';
+ve.defer = true;
+document.head.appendChild(ve);
+}
 document.querySelectorAll('a[href^="#"], a[href*="/#"]').forEach(function(a){
 a.addEventListener('click', function(ev){
 var href = a.getAttribute('href')||'';
