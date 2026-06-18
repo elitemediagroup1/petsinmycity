@@ -210,6 +210,7 @@
       } else if (host){
         host.classList.add('pshell-main'); host.id = host.id || 'pshell-main'; host.setAttribute('tabindex','-1');
       }
+      if (host && host.id){ skip.setAttribute('href', '#' + host.id); }
     }
 
     body.insertBefore(nav, null);              // append persistent nav last
