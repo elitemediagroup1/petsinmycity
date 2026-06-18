@@ -24,7 +24,8 @@ Anything beyond the active set lives in **Next** or **Backlog** — not "In Prog
 1. **Phase 1 — Foundation Cleanup & Trust Completion** — shipped (Trust Center, Editorial Standards, this checklist live). Kept here only while the "last reviewed" pattern and the nav-placement decision wrap up.
 2. **Phase 2 — Lucy: Premium Welcome + Chat Polish** — shipped (Lucy 2.0 first-visit welcome, suggestion cards, premium chat UI).
 3. **Phase 2 — Lucy Care Companion™ Notification Engine** — in progress (provider-agnostic communication foundation + Notification Preferences page).
-4. **Phase 2 / Phase 8 — PetsInMyCity Platform Shell v1** — in progress (shared application shell + permanent platform navigation: Home/Today, Lucy, My Pets, Discover, Me; Emergency always reachable; shared design system; Today dashboard). Foundation for the future Website/PWA/iOS/Android surfaces.
+4. **Phase 2 / Phase 8 — PetsInMyCity Platform Shell v1** — shipped (shared application shell + permanent platform navigation: Home/Today, Lucy, My Pets, Discover, Me; Emergency always reachable; shared design system; Today dashboard). Foundation for the future Website/PWA/iOS/Android surfaces.
+5. **Phase 6 / Phase 7 — Veterinary Care Engine v1** — in progress (permanent, provider-agnostic veterinary care decision engine + educational Online Vet Hub at `/online-vet/`; Dutch as the first config-driven online-vet provider, educational-first, affiliate-disclosed). Lucy routes to the correct care path before any provider.
 
   Foundation (Phase 1) has shipped, so Phase 2 product work is now active. Still respecting the 3–5 rule: nothing new enters "In Progress" until one of the above moves out.
 
@@ -157,8 +158,10 @@ Affiliate relationships keep the platform free without deciding recommendations.
   - Amazon affiliate strategy defined.
   - Affiliate category pages (insurance, supplies, DNA testing, pet boxes, etc.).
 - **In Progress**
-  - _None active. Do not add new affiliate placements during Phase 1._
+  - **Veterinary Care Engine v1** — permanent, provider-agnostic veterinary care decision engine powering Lucy and future features. Educational Online Vet Hub at `/online-vet/` (category-level education first). Dutch added as the first online-vet provider via reusable provider config (`DUTCH_AFFILIATE_URL` placeholder until the live affiliate link is provided). Affiliate disclosure + `rel="sponsored"` applied. No fabricated provider-specific claims.
 - **Next**
+  - Replace `DUTCH_AFFILIATE_URL` placeholder with the live Dutch affiliate tracking link; validate Dutch-specific content against the due-diligence report.
+  - Add additional online-vet providers (e.g., Vetster, AirVet, BetterVet, Pawp) through the same provider config.
   - Improve placement quality and disclosure clarity without compromising editorial integrity.
 - **Backlog**
   - Centralized, reusable disclosure component.
