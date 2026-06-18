@@ -101,7 +101,7 @@
 
   var IN_PERSON_SIGNALS = /exam|vaccin|shot|spay|neuter|dental|teeth\s+clean|x-?ray|surgery|bloodwork|blood\s+test|wound|stitches|in[\s-]?person|physical/i;
 
-  var ONLINE_SIGNALS = /online\s+vet|virtual\s+vet|telehealth|telemedicine|video\s+call|chat\s+with\s+a\s+vet|from\s+home|quick\s+question|non[\s-]?urgent|advice|second\s+opinion|follow[\s-]?up/i;
+  var ONLINE_SIGNALS = /online\s+vet|vet\s+online|virtual\s+vet|telehealth|telemedicine|video\s+call|chat\s+with\s+a\s+vet|chat\s+vet|talk\s+to\s+a\s+vet|speak\s+(?:to|with)\s+a\s+vet|ask\s+a\s+vet|online\s+(?:consult|consultation|appointment|appt)|remote\s+vet|from\s+home|quick\s+question|non[\s-]?urgent|advice|second\s+opinion|follow[\s-]?up/i;
 
   /* =========================================================================
    * 3. DECISION ENGINE — returns a structured recommendation.
