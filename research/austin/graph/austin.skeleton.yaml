@@ -1,0 +1,319 @@
+# Austin — Knowledge Graph: COMPLETE CATEGORY SKELETON
+# =====================================================================
+# Instance-shape of docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml
+#
+# PURPOSE (per Sprint 4 brief + ADR-0005):
+#   This file maps EVERY CATEGORY of object Austin will eventually contain.
+#   It is the STRUCTURE, not the facts. It is a research backlog and a
+#   completeness checklist, NOT a populated city.
+#
+# HONESTY RULES (non-negotiable):
+#   - No facts are invented. Every `value` field is empty ('') or null.
+#   - Every node starts `verification: unverified` and `confidence: 0`.
+#   - `count_target` is a PLANNING estimate of how many instances a category
+#     will eventually hold — it is not a claim that they exist yet.
+#   - Real, widely-documented public places live in the companion seed
+#     (austin.entities.yaml) as `status: active`; this skeleton only names the
+#     CATEGORY, so we never assert a specific unverified place here.
+#   - Safety-critical categories (🔒) require Tier 1-2 sources before any value
+#     is filled and before anything renders. See ../../../docs/editorial/knowledge-graph/LIFECYCLE.md
+#
+# HOW TO USE: pick a category, open the matching dossier template, research one
+#   instance, and add it as a fully-enveloped object in austin.entities.yaml.
+
+instance: austin
+place_root: place/tx/austin
+schema_ref: ../../../docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml
+companion_seed: ./austin.entities.yaml        # the honest current state (18 real objects)
+population_plan: ./POPULATION_PLAN.md
+seeded_on: 2026-07-15
+seeded_by: editorial (Claude-assisted; NO facts fabricated)
+default_envelope: { status: planned, verification: unverified, confidence: 0, owner: '', sources: [] }
+
+# =====================================================================
+# 1. PLACE FAMILY — the containment spine
+# =====================================================================
+categories:
+
+  place:
+    state:
+      description: Texas (already seeded)
+      count_target: 1
+    metro:
+      description: Austin-Round Rock-Georgetown MSA
+      count_target: 1
+    counties:
+      description: Travis, Williamson, Hays, Bastrop, Caldwell
+      count_target: 5
+    city:
+      description: City of Austin (already seeded)
+      count_target: 1
+    nearby_cities:
+      description: proximity edges — Round Rock, Cedar Park, Georgetown, Pflugerville, Lakeway, Bee Cave, Kyle, Buda, Leander, San Marcos
+      count_target: 12
+    neighborhoods:
+      description: Downtown, South Congress, East Austin, Mueller, Hyde Park, Zilker, Barton Hills, Travis Heights, North Loop, The Domain, Clarksville, Cherrywood, Crestview, Allandale, etc.
+      count_target: 40
+      fields_to_verify: [dog_friendliness, typical_housing, renting_with_pets, nearest_green_space]
+    zip_codes:
+      description: all Austin ZCTAs (for near-me + local scoping)
+      count_target: 55
+
+  # =====================================================================
+  # 2. FACILITY FAMILY — physical pet-relevant destinations
+  # =====================================================================
+  facility:
+    parks:
+      description: public parks with pet access rules
+      count_target: 250
+      fields_to_verify: [leash_rule, off_leash_area, water_access, hours, pet_waste_stations]
+    dog_parks:
+      description: dedicated off-leash areas (fenced + unfenced)
+      count_target: 15
+      fields_to_verify: [fenced, water_available, small_dog_area, surface, hours]
+    trails:
+      description: greenbelt / creek / urban trails
+      count_target: 60
+      safety_critical: true   # 🔒 flash-flood + heat exposure
+      fields_to_verify: [leash_rule, shade, water_access, dangerous_during_flash_flood, surface_heat_risk, length, difficulty]
+    beaches_waterfront:
+      description: lake/river shoreline dog access (Austin is inland — lake access, not ocean beaches)
+      count_target: 10
+      safety_critical: true   # 🔒 blue-green algae, currents
+      fields_to_verify: [swim_allowed, blue_green_algae_risk, shore_access, current_risk]
+    lakes:
+      description: Lady Bird Lake, Lake Austin, Lake Travis, Walter E. Long, etc.
+      count_target: 6
+      safety_critical: true   # 🔒
+      fields_to_verify: [swim_allowed, blue_green_algae_risk, boat_ramp, shore_access]
+    campgrounds:
+      description: state parks + private campgrounds within day-trip range
+      count_target: 20
+      safety_critical: true   # 🔒 wildlife + vet distance
+      fields_to_verify: [pet_policy, max_pets, leash_rule, wildlife_notes, vet_distance]
+    dog_friendly_restaurants:
+      description: patios/indoor dog-welcome (operator-confirmed)
+      count_target: 300
+      fields_to_verify: [patio_policy, indoor_allowed, water_provided, dog_menu, verified_with_operator]
+    dog_friendly_hotels:
+      description: pet-welcome lodging (fees, weight limits)
+      count_target: 80
+      fields_to_verify: [pet_policy, pet_fee, weight_limit, max_pets]
+    apartments:
+      description: pet-policy apartment communities
+      count_target: 200
+      safety_critical: true   # 🔒 breed restrictions are legally sensitive
+      review_cadence: quarterly
+      fields_to_verify: [pet_policy, breed_restrictions, weight_limit, pet_rent, pet_deposit]
+    hoas:
+      description: HOA pet rules (legally sensitive, volatile)
+      count_target: 100
+      safety_critical: true   # 🔒
+      review_cadence: quarterly
+      fields_to_verify: [pet_policy, breed_restrictions, weight_limit]
+
+  # =====================================================================
+  # 3. ORGANIZATION FAMILY — businesses & institutions
+  # =====================================================================
+  organization:
+    veterinarians:
+      description: general-practice vets
+      count_target: 200
+      fields_to_verify: [species_treated, specialties, accepts_new_patients, payment_options, hours, address, phone]
+    emergency_vets:
+      description: 24/7 / after-hours emergency animal hospitals
+      count_target: 12
+      safety_critical: true   # 🔒 load-bearing safety category
+      review_cadence: monthly
+      fields_to_verify: ['24_7', after_hours_window, address, phone, species_treated]
+    animal_hospitals:
+      description: full-service hospitals / referral centers
+      count_target: 25
+      fields_to_verify: [specialties, imaging, surgery, referral_only]
+    specialists:
+      description: cardiology, oncology, dermatology, ophthalmology, neurology, etc.
+      count_target: 30
+      fields_to_verify: [specialty, referral_required, species_treated]
+    shelters:
+      description: municipal + humane shelters (e.g. Austin Animal Center — seeded)
+      count_target: 8
+      fields_to_verify: [jurisdiction, intake_policy, lost_pet_process, adoption_process, hours]
+    rescues:
+      description: breed/species-specific + all-breed rescues
+      count_target: 80
+      fields_to_verify: [species_focus, breed_focus, adoption_process, legitimacy_check]
+    boarding:
+      description: overnight boarding facilities
+      count_target: 60
+      fields_to_verify: [species_accepted, vaccination_requirements, capacity, hours]
+    daycare:
+      description: dog daycare
+      count_target: 50
+      fields_to_verify: [capacity, temperament_test, hours, webcams]
+    trainers:
+      description: obedience / behavior trainers
+      count_target: 70
+      fields_to_verify: [methods, certifications, specialties]
+    groomers:
+      description: grooming businesses + mobile groomers
+      count_target: 120
+      fields_to_verify: [species_serviced, mobile, appointment_required]
+    pet_stores:
+      description: independent + chain pet supply
+      count_target: 90
+      fields_to_verify: [products, live_animals_policy, services_onsite]
+    dog_walkers_sitters:
+      description: dog walkers + pet sitters (verify legitimacy/insurance)
+      count_target: 100
+      fields_to_verify: [insured, bonded, service_area]
+
+  # =====================================================================
+  # 4. GOVERNMENT / COMMUNITY ORGS
+  # =====================================================================
+  government_community:
+    animal_control:
+      description: Austin/Travis County animal control + protection
+      count_target: 2
+      safety_critical: true   # 🔒 (lost-pet, bite, dangerous-dog processes)
+      fields_to_verify: [jurisdiction, contact, bite_report_process, dangerous_dog_process]
+    parks_department:
+      description: Austin Parks & Recreation (pet rules authority)
+      count_target: 1
+      fields_to_verify: [leash_ordinance_source, off_leash_areas_list]
+    wildlife_agency:
+      description: Texas Parks & Wildlife (venom/wildlife authority)
+      count_target: 1
+      safety_critical: true   # 🔒
+    emergency_management:
+      description: flood/heat/disaster alerts affecting pets
+      count_target: 2
+      safety_critical: true   # 🔒
+    licensing_authority:
+      description: pet registration/licensing + rabies requirements
+      count_target: 1
+      fields_to_verify: [license_required, fees, rabies_requirement, source_url]
+    community_organizations:
+      description: local pet nonprofits, foster networks, breed clubs, meetup groups
+      count_target: 40
+
+  # =====================================================================
+  # 5. CARE-CONCEPT ASSOCIATIONS (national concepts x Austin) — ADR-0003
+  #    The concept is defined once nationally; the Austin-specific FACT lives
+  #    on the edge. All safety concepts are 🔒 (Tier 1-2 only).
+  # =====================================================================
+  care_concept_associations:
+    climate:
+      description: Central Texas climate profile attached to Austin (NOAA-backed)
+      safety_critical: true   # 🔒
+      fields_to_verify: [avg_summer_high, humidity, first_freeze, heat_season_window]
+    seasons:
+      description: seasonal windows (heat season, allergy season, storm season)
+      count_target: 4
+    weather_patterns:
+      description: flash-flood season, heat waves, ice events, drought
+      safety_critical: true   # 🔒
+    hazards:
+      description: heat/pavement burn, flash flooding, blue-green algae, foxtail/grass awns, traffic
+      safety_critical: true   # 🔒
+      fields_to_verify: [severity, onset, symptoms, action]
+    poisons_plants:
+      description: toxic plants (sago palm, oleander, etc.), rodenticides, pesticides common in region
+      safety_critical: true   # 🔒
+      fields_to_verify: [toxicity, symptoms, action]
+    wildlife:
+      description: venomous snakes (copperhead, rattlesnake, cottonmouth, coral), scorpions, coyotes, fire ants, toads
+      safety_critical: true   # 🔒
+      fields_to_verify: [venomous, active_season, first_response, recommended_response_to_emergency_vet]
+    parasites_diseases:
+      description: ticks, fleas, heartworm prevalence, leptospirosis, canine flu
+      safety_critical: true   # 🔒
+      fields_to_verify: [prevalence, prevention, season]
+    breeds_x_place:
+      description: high-value Breed x Austin joins (e.g. heat-sensitive/brachycephalic breeds in Austin summers)
+      count_target: 50
+      fields_to_verify: [heat_suitability, exercise_window, local_notes]
+    laws_regulations:
+      description: leash law, breed rules (BSL status), licensing, vaccination, tethering, heat/animal-cruelty ordinances
+      safety_critical: true   # 🔒 legally sensitive
+      fields_to_verify: [jurisdiction, citation, effective_date, penalty, source_url]
+    activities:
+      description: hiking, swimming, patio dining, paddling, dog-friendly events, road trips from Austin
+      count_target: 30
+      fields_to_verify: [suitable_for, season, prerequisites]
+
+  # =====================================================================
+  # 6. SIGNAL FAMILY — the human/experiential layer (strict provenance)
+  # =====================================================================
+  signal:
+    costs:
+      description: dated cost ranges — vet visit, emergency visit, pet rent/deposit, licensing, boarding/day, grooming, DNA test
+      count_target: 20
+      dated: true
+      fields_to_verify: [amount_range, as_of_date, source]
+    transportation:
+      description: pet policy on CapMetro transit, rideshare pet rules, pet-taxi options
+      count_target: 8
+      fields_to_verify: [pets_allowed, conditions, source]
+    community_insights:
+      description: LEAD-ONLY local observations (must be re-verified before rendering)
+      count_target: 100
+      trust_rule: lead_only   # never rendered as truth (Signal.CommunityInsight)
+    observed_patterns:
+      description: aggregate patterns observed across multiple sources (e.g. typical summer walk times)
+      count_target: 30
+    seasonal_information:
+      description: month-by-month what-to-know (heat window, storm risk, event calendar)
+      count_target: 12
+    events:
+      description: adoption events, festivals, fundraisers, meetups (expiring objects)
+      count_target: 60
+      expiring: true
+      fields_to_verify: [date, location, host, recurring]
+    recommendations:
+      description: derived recommendations — computed ONLY from verified inputs (Signal.Recommendation)
+      count_target: 40
+      requires: derived_from_verified
+    reviews_aggregate:
+      description: aggregate-only review signals (never individual scraped reviews)
+      trust_rule: aggregate_only
+
+  # =====================================================================
+  # 7. KNOWLEDGE & MEDIA & PEOPLE (supporting families)
+  # =====================================================================
+  knowledge:
+    articles:
+      description: assembled city/neighborhood/park/etc. pages (OUTPUTS of the graph, not inputs)
+      note: rendered via SURFACES.md; not authored as prose
+    research_dossiers:
+      description: intake documents per dossiers/ templates that feed the graph
+    sources:
+      description: catalog of Austin-specific sources with tiers (gov, agency, publication, operator)
+      count_target: 150
+    verified_claims:
+      description: the assertions themselves once they clear the publish gate
+    expert_sources:
+      description: named local experts (see ../EXPERT_SOURCES.md) — vets, TPWD, city officials
+      count_target: 20
+  media:
+    images:
+      description: licensed/original imagery per place/facility (with rights metadata)
+    videos:
+      description: Lucy Studio + location videos
+    maps:
+      description: geo layers for parks, trails, emergency-vet coverage, flood zones
+  people_pets:
+    editors:
+      description: accountable owners for Austin objects
+    users:
+      description: Austin users (private; not public entities)
+    pets:
+      description: My Pets profiles scoped to Austin (private)
+
+# =====================================================================
+# COMPLETENESS TARGET
+# =====================================================================
+# Sum of count_target is a PLANNING horizon (~2,000+ objects) at which the
+# Austin page is 'assembled, not written'. It is NOT a claim of current state.
+# Current real state = the 18 seeded objects in austin.entities.yaml.
+# Sequencing = safety floor first (heat, flood, algae, venom, emergency vets),
+# per POPULATION_PLAN.md.

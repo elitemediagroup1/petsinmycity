@@ -4,8 +4,8 @@
 # Policy definitions (confidence bands, verification lifecycle, ownership)
 # live in ../KNOWLEDGE_OS.md and are referenced here, not redefined.
 
-schema_version: 0.1.0
-status: draft            # draft until PR #3 review; do not treat as stable API
+schema_version: 0.2.0
+status: draft            # draft; verification lifecycle expanded in v0.2.0 (see LIFECYCLE.md)
 maintainer: editorial
 
 # ---------------------------------------------------------------------------
@@ -24,7 +24,10 @@ envelope:
     confidence: {type: int, min: 0, max: 100, ref: "KNOWLEDGE_OS#confidence"}
     verification:
       type: enum
-      values: [unverified, researching, verified, disputed, stale]
+      # 11 mutually-exclusive states. Full definitions + state machine: LIFECYCLE.md
+      # (v0.2.0: reconciles the Sprint 4 brief's ~14 labels; 'stale' -> 'needs_review', see DECISIONS.md ADR-0002)
+      values: [unverified, researching, needs_verification, verified, disputed,
+               needs_review, outdated, deprecated, archived, rejected, merged]
       default: unverified
     safety_critical: {type: bool, default: false}
   stewardship:
