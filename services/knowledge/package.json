@@ -1,0 +1,19 @@
+{
+  "name": "@petsinmycity/knowledge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Knowledge Graph storage foundation for PetsInMyCity. Persistent, versioned, provenance-tracked storage implementing the frozen Machine Schema envelope.",
+  "main": "src/index.js",
+  "scripts": {
+    "migrate": "node scripts/migrate.js",
+    "load:austin": "node scripts/load-austin.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
