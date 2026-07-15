@@ -33,6 +33,14 @@ defines the **shapes** those rules apply to.
 - [`SURFACES.md`](SURFACES.md) — how the graph powers articles, Lucy, My Pets,
   search, recommendations, maps, and future APIs, and the confidence gate each
   surface enforces.
+- [`LIFECYCLE.md`](LIFECYCLE.md) — the verification state machine: the 11
+  mutually-exclusive states, their transitions, and how confidence decays over
+  time. Reconciles the Knowledge OS lifecycle with the machine schema.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — the system map: the four layers, the
+  request-to-render data flow, the decade-scale model (10k cities, millions of
+  objects), and the integration seams with the Editorial OS and the product.
+- [`DECISIONS.md`](DECISIONS.md) — Architecture Decision Records (ADRs) explaining
+  why the graph is shaped this way (incl. the lifecycle reconciliation).
 
 ## Core idea
 
