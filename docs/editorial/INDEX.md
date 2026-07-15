@@ -168,3 +168,39 @@ How the production layer maps back to this foundation:
 - **Austin Pilot** → generalized into a repeatable city template, the calibration anchor for quality scoring, and the source of ADRs 0007–0012 that the CPS builds on.
 
 The ADR log is continuous: KG `knowledge-graph/DECISIONS.md` (0001–0006) → Austin pilot `SCHEMA_FINDINGS_AND_ADRS.md` (0007–0012) → `production/DECISIONS.md` (0013–0018).
+
+---
+
+## Delivery layer — Knowledge Delivery Platform (Sprint 7)
+
+The Editorial OS + Knowledge OS define *what good is*; the CPS (`production/`) defines *how it’s manufactured*; the **KDP (`delivery/`, Sprint 7)** defines *how verified knowledge reaches every product*. It is the single mediating layer — no consumer reads raw knowledge objects directly. It extends, and never redesigns, the systems above.
+
+Start at `../../delivery/KNOWLEDGE_DELIVERY_PLATFORM.md`, then:
+
+```
+delivery/
+  KNOWLEDGE_DELIVERY_PLATFORM.md  backbone, tenets, component map, request/change flows
+  DELIVERY_ENGINE.md              10-stage request pipeline + response envelope
+  EVENT_SYSTEM.md                 event bus: taxonomy, envelope, propagation
+  DEPENDENCY_GRAPH.md             who-consumes-what; impact closure; regeneration
+  FRESHNESS_ENGINE.md             expiry, refresh, versioning, rollback, comparison
+  RULE_ENGINE.md                  rules-as-data framework (not hardcoded)
+  CONTEXT_ENGINE.md               DeliveryContext assembly + consent + degradation
+  PERSONALIZATION.md              persona/relevance ranking; non-suppressible safety
+  LUCY_INTEGRATION.md             Lucy’s consumer contract (never-invent, cite, uncertainty)
+  RECOMMENDATION_ENGINE.md        explainable, traceable recommendations
+  NOTIFICATION_ENGINE.md          event-driven, verified-only alerts
+  API_ARCHITECTURE.md             internal/external APIs, versioning, auth, EMG integration
+  CONSUMERS.md                    Articles/Search/Maps/My Pets contracts + matrix
+  DECISIONS.md                    Sprint 7 ADRs (0019–0025)
+```
+
+How the delivery layer maps back to the foundation:
+
+- **Knowledge Graph + Schema** → the KDP is its only reader-of-record; adds delivery/rule/cache overlays, not new fact types.
+- **`SURFACES.md`** (conceptual surface mapping) → the KDP is its *engineered* realization: concrete pipeline, events, and per-consumer contracts.
+- **Publish Gate (CPS)** → re-enforced at *delivery time* per surface (defense-in-depth).
+- **Maintenance System (CPS)** → Freshness Engine + feedback/source signals feed the CPS maintenance queues.
+- **Lucy / My Pets** → not redesigned; given formal consumer contracts.
+
+The ADR log continues: … `production/DECISIONS.md` (0013–0018) → `delivery/DECISIONS.md` (0019–0025).
