@@ -1,0 +1,118 @@
+# Austin Verified Knowledge Pilot — Place & Facility entities
+# Instance of docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml (envelope per entity).
+# Sprint 5. Every record is backed by a real Tier-1 source (see ../SOURCE_REGISTRY.md).
+# Unknown/unverified fields are omitted or marked needs_verification ON PURPOSE.
+
+schema_version: 0.2.0
+dataset: austin-pilot/places
+
+entities:
+
+  - id: place/tx
+    type: Place.State
+    name: Texas
+    aliases: [TX]
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    sources:
+      - {tier: 1, kind: gov, url: "tpwd.texas.gov", accessed: 2026-07-15, quote: "State of Texas"}
+
+  - id: place/tx/travis
+    type: Place.County
+    name: Travis County
+    parent: place/tx
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    sources:
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED (BOUNDARIES_city_of_austin_parks: COUNTY=Travis)", accessed: 2026-07-15}
+
+  - id: place/tx/austin
+    type: Place.City
+    name: Austin
+    aliases: [ATX, "Austin, TX"]
+    parent: place/tx/travis
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov", accessed: 2026-07-15, quote: "City of Austin"}
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED (CITY_MUNICIPAL=Austin, COUNTY=Travis, STATE=TX)", accessed: 2026-07-15}
+
+  # ---- Named parks / natural areas (PARD-managed) ----
+
+  - id: place/tx/austin/red-bud-isle
+    type: Facility.Park
+    name: Red Bud Isle
+    parent: place/tx/austin
+    status: active            # ASSET_STATUS=Open
+    confidence: 95
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      address: "3401 Redbud Trl., Austin, TX 78746"
+      county: place/tx/travis
+      zip: "78746"
+      park_type: Special
+      acreage: 17.49
+      managing_authority: org/gov/tx/austin/pard
+      council_district: "8"
+      off_leash_status: needs_verification   # confirm against official Dog Off-Leash Area Map PDF
+    sources:
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED/.../BOUNDARIES_city_of_austin_parks/FeatureServer/0 (LOCATION_NAME=Red Bud Isle)", accessed: 2026-07-15}
+
+  - id: place/tx/austin/auditorium-shores
+    type: Facility.Park
+    name: Auditorium Shores at Town Lake Metropolitan Park
+    aliases: ["Auditorium Shores"]
+    parent: place/tx/austin
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      address: "800 W Riverside Dr., Austin, TX 78704"
+      county: place/tx/travis
+      zip: "78704"
+      park_type: Metropolitan
+      managing_authority: org/gov/tx/austin/pard
+      council_district: "5;9"
+      off_leash_status: needs_verification   # confirm against official Dog Off-Leash Area Map PDF
+    sources:
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED/.../BOUNDARIES_city_of_austin_parks/FeatureServer/0 (LOCATION_NAME=Auditorium Shores at Town Lake Metro Park)", accessed: 2026-07-15}
+
+  - id: place/tx/austin/barton-creek-greenbelt
+    type: Facility.Trail
+    name: Barton Creek Greenbelt
+    parent: place/tx/austin
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      address: "3753 S Capital of Texas Hwy., Austin, TX 78746"
+      county: place/tx/travis
+      zip: "78746"
+      park_type: Greenbelt
+      managing_authority: org/gov/tx/austin/pard
+      council_district: "5;8"
+      off_leash_status: needs_verification
+      water_access: true      # Barton Creek; flooding/water-quality hazard applies (see concepts)
+    sources:
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED/.../BOUNDARIES_city_of_austin_parks/FeatureServer/0 (LOCATION_NAME=Barton Creek Greenbelt)", accessed: 2026-07-15}
