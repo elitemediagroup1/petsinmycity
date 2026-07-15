@@ -1,0 +1,36 @@
+# Austin Verified Knowledge Pilot — Relationship edges
+# Edge types defined in docs/editorial/knowledge-graph/RELATIONSHIPS.md. Sprint 5.
+
+schema_version: 0.2.0
+dataset: austin-pilot/edges
+
+edges:
+  # Geographic spine
+  - {edge: contains, from: place/tx, to: place/tx/travis}
+  - {edge: contains, from: place/tx/travis, to: place/tx/austin}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/red-bud-isle}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/auditorium-shores}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/barton-creek-greenbelt}
+
+  # Managing / governing authority
+  - {edge: managed_by, from: place/tx/austin/red-bud-isle, to: org/gov/tx/austin/pard}
+  - {edge: managed_by, from: place/tx/austin/auditorium-shores, to: org/gov/tx/austin/pard}
+  - {edge: managed_by, from: place/tx/austin/barton-creek-greenbelt, to: org/gov/tx/austin/pard}
+  - {edge: governs, from: org/gov/tx/austin/watershed, to: concept/hazard/austin-flooding}
+  - {edge: issues_alerts_for, from: org/gov/us/nws-ewx, to: concept/hazard/austin-flooding}
+  - {edge: authority_for, from: org/gov/tx/tpwd, to: concept/wildlife/texas-venomous-snakes}
+
+  # Service / jurisdiction
+  - {edge: serves, from: org/shelter/tx/austin/austin-animal-center, to: place/tx/austin}
+  - {edge: serves, from: org/shelter/tx/austin/austin-animal-center, to: place/tx/travis}
+  - {edge: serves, from: org/emergency-vet/tx/austin/veg-south-lamar, to: place/tx/austin}
+  - {edge: serves, from: org/emergency-vet/tx/austin/medvet-austin, to: place/tx/austin}
+  - {edge: serves, from: org/emergency-vet/tx/austin/aves, to: place/tx/austin}
+
+  # Rule applies to city
+  - {edge: applies_to, from: concept/law/austin-restraint, to: place/tx/austin}
+
+  # Hazard <-> place/season relationships (fact-bearing)
+  - {edge: hazard_at, from: concept/hazard/austin-flooding, to: place/tx/austin/barton-creek-greenbelt, note: "Barton Creek water access; realized via NWS alerts, not always-on"}
+  - {edge: hazard_in, from: concept/wildlife/texas-venomous-snakes, to: place/tx, note: "statewide scope; Austin localization needs_verification"}
+  - {edge: hazard_in, from: concept/climate/central-texas-heat, to: place/tx/austin, note: "seasonal; distinct from live advisories"}
