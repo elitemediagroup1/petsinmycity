@@ -1,4 +1,4 @@
-# Editorial & Knowledge Foundation â Index
+# Editorial & Knowledge Foundation — Index
 
 > **Start here.** This is the map of PetsInMyCity's Editorial Operating System and Knowledge Operating System, and how they connect to the existing product documentation. For the audit and rationale behind these files, see `IMPLEMENTATION_MAP.md`.
 
@@ -6,21 +6,21 @@
 
 ## Read in this order
 
-1. **`IMPLEMENTATION_MAP.md`** â repository audit, what already existed, consolidation decisions, and how the editorial system integrates.
-2. **`EDITORIAL_OS.md`** â the master newsroom manual (philosophy, standards, review, competitive moat, manifesto).
-3. **`LOCAL_JOURNALISM.md`** â how we report a place to newsroom depth; the Local Authenticity Test.
-4. **`RESEARCH_WORKFLOW.md`** â the investigative workflow and the source-reliability tiers (1-4).
-5. **`PUBLISH_GATE.md`** â claim verification statuses, the publish gate, and content maintenance/refresh.
-6. **`KNOWLEDGE_OS.md`** â the Knowledge Operating System: entity model, relationships, lifecycle, provenance, ownership.
-7. **`dossiers/README.md`** â the research dossier system, plus 10 production templates.
-8. **`AI_EDITOR_GUIDELINES.md`** â how AI (Lucy + future) operates under the manual.
-9. **`EDITOR_CHECKLIST.md`** â the reviewable checklist that enforces the publish gate.
+1. **`IMPLEMENTATION_MAP.md`** — repository audit, what already existed, consolidation decisions, and how the editorial system integrates.
+2. **`EDITORIAL_OS.md`** — the master newsroom manual (philosophy, standards, review, competitive moat, manifesto).
+3. **`LOCAL_JOURNALISM.md`** — how we report a place to newsroom depth; the Local Authenticity Test.
+4. **`RESEARCH_WORKFLOW.md`** — the investigative workflow and the source-reliability tiers (1-4).
+5. **`PUBLISH_GATE.md`** — claim verification statuses, the publish gate, and content maintenance/refresh.
+6. **`KNOWLEDGE_OS.md`** — the Knowledge Operating System: entity model, relationships, lifecycle, provenance, ownership.
+7. **`dossiers/README.md`** — the research dossier system, plus 10 production templates.
+8. **`AI_EDITOR_GUIDELINES.md`** — how AI (Lucy + future) operates under the manual.
+9. **`EDITOR_CHECKLIST.md`** — the reviewable checklist that enforces the publish gate.
 
 ## Document map
 
 ```
 docs/editorial/
-  INDEX.md                 â you are here
+  INDEX.md                 ← you are here
   IMPLEMENTATION_MAP.md    audit + integration
   EDITORIAL_OS.md          master manual
   LOCAL_JOURNALISM.md      local reporting + authenticity test
@@ -45,39 +45,39 @@ research/
 
 ## How it connects to existing docs (preserved, not modified)
 
-- `../platform-architecture.md` â product/IA vision. The editorial system produces the *content and knowledge* that fill its Discover/Learn/Emergency pillars.
-- `../roadmap.md` â the SEO/Content/Local roadmaps; this foundation operationalizes their "programmatic city pages, done well" intent.
-- `../knowledge-graph.md` â the conceptual entity map. **Extended (not replaced)** by `KNOWLEDGE_OS.md`.
-- `../lucy-brain.md` â Lucy's guardrails. **Inherited** by `AI_EDITOR_GUIDELINES.md`.
-- `../brand-bible.md` â voice/trust. The Editorial OS is consistent with it.
-- Public `/editorial-standards/` â its private engine is this `docs/editorial/` set.
+- `../platform-architecture.md` — product/IA vision. The editorial system produces the *content and knowledge* that fill its Discover/Learn/Emergency pillars.
+- `../roadmap.md` — the SEO/Content/Local roadmaps; this foundation operationalizes their "programmatic city pages, done well" intent.
+- `../knowledge-graph.md` — the conceptual entity map. **Extended (not replaced)** by `KNOWLEDGE_OS.md`.
+- `../lucy-brain.md` — Lucy's guardrails. **Inherited** by `AI_EDITOR_GUIDELINES.md`.
+- `../brand-bible.md` — voice/trust. The Editorial OS is consistent with it.
+- Public `/editorial-standards/` — its private engine is this `docs/editorial/` set.
 
 ## The one-line summary
 
 Report before we write; verify before we publish; store knowledge in the graph so it is reused everywhere and corrected everywhere; and never publish anything that fails the name-swap test or the publish gate. Trust is the objective; rankings are a byproduct.
 
 
-## Knowledge Graph â schema layer (Sprint 4)
+## Knowledge Graph — schema layer (Sprint 4)
 
 The data model that the Knowledge OS describes is now specified in
 [`knowledge-graph/`](knowledge-graph/). Start with its
 [`README`](knowledge-graph/README.md), then:
 
-- [`knowledge-graph/SCHEMA_CONVENTIONS.md`](knowledge-graph/SCHEMA_CONVENTIONS.md) â the universal knowledge envelope.
-- [`knowledge-graph/ENTITIES.md`](knowledge-graph/ENTITIES.md) â every entity type and its fields.
-- [`knowledge-graph/RELATIONSHIPS.md`](knowledge-graph/RELATIONSHIPS.md) â the edge catalog.
-- [`knowledge-graph/MACHINE_SCHEMA.yaml`](knowledge-graph/MACHINE_SCHEMA.yaml) â machine-readable source of truth.
-- [`knowledge-graph/SURFACES.md`](knowledge-graph/SURFACES.md) â how the graph powers articles, Lucy, My Pets, search, recommendations, maps, and APIs.
-- [`knowledge-graph/LIFECYCLE.md`](knowledge-graph/LIFECYCLE.md) â the verification state machine (11 states) and confidence decay.
-- [`knowledge-graph/ARCHITECTURE.md`](knowledge-graph/ARCHITECTURE.md) â the system map, request-to-render data flow, decade-scale model, and integration seams.
-- [`knowledge-graph/DECISIONS.md`](knowledge-graph/DECISIONS.md) â Architecture Decision Records (ADRs).
+- [`knowledge-graph/SCHEMA_CONVENTIONS.md`](knowledge-graph/SCHEMA_CONVENTIONS.md) — the universal knowledge envelope.
+- [`knowledge-graph/ENTITIES.md`](knowledge-graph/ENTITIES.md) — every entity type and its fields.
+- [`knowledge-graph/RELATIONSHIPS.md`](knowledge-graph/RELATIONSHIPS.md) — the edge catalog.
+- [`knowledge-graph/MACHINE_SCHEMA.yaml`](knowledge-graph/MACHINE_SCHEMA.yaml) — machine-readable source of truth.
+- [`knowledge-graph/SURFACES.md`](knowledge-graph/SURFACES.md) — how the graph powers articles, Lucy, My Pets, search, recommendations, maps, and APIs.
+- [`knowledge-graph/LIFECYCLE.md`](knowledge-graph/LIFECYCLE.md) — the verification state machine (11 states) and confidence decay.
+- [`knowledge-graph/ARCHITECTURE.md`](knowledge-graph/ARCHITECTURE.md) — the system map, request-to-render data flow, decade-scale model, and integration seams.
+- [`knowledge-graph/DECISIONS.md`](knowledge-graph/DECISIONS.md) — Architecture Decision Records (ADRs).
 
 The first populated instance lives in
 [`../../research/austin/graph/`](../../research/austin/graph/): the honest,
 mostly-unverified `austin.entities.yaml` seed, the exhaustive `austin.skeleton.yaml`
 category map (structure only, no invented facts), and a population plan to 2,000+ objects.
 This layer **extends** the Knowledge OS; it does not replace it.
-# Editorial & Knowledge Foundation â Index
+# Editorial & Knowledge Foundation — Index
 
 > **Start here.** This is the map of PetsInMyCity's Editorial Operating System and Knowledge Operating System, and how they connect to the existing product documentation. For the audit and rationale behind these files, see `IMPLEMENTATION_MAP.md`.
 
@@ -85,21 +85,21 @@ This layer **extends** the Knowledge OS; it does not replace it.
 
 ## Read in this order
 
-1. **`IMPLEMENTATION_MAP.md`** â repository audit, what already existed, consolidation decisions, and how the editorial system integrates.
-2. **`EDITORIAL_OS.md`** â the master newsroom manual (philosophy, standards, review, competitive moat, manifesto).
-3. **`LOCAL_JOURNALISM.md`** â how we report a place to newsroom depth; the Local Authenticity Test.
-4. **`RESEARCH_WORKFLOW.md`** â the investigative workflow and the source-reliability tiers (1-4).
-5. **`PUBLISH_GATE.md`** â claim verification statuses, the publish gate, and content maintenance/refresh.
-6. **`KNOWLEDGE_OS.md`** â the Knowledge Operating System: entity model, relationships, lifecycle, provenance, ownership.
-7. **`dossiers/README.md`** â the research dossier system, plus 10 production templates.
-8. **`AI_EDITOR_GUIDELINES.md`** â how AI (Lucy + future) operates under the manual.
-9. **`EDITOR_CHECKLIST.md`** â the reviewable checklist that enforces the publish gate.
+1. **`IMPLEMENTATION_MAP.md`** — repository audit, what already existed, consolidation decisions, and how the editorial system integrates.
+2. **`EDITORIAL_OS.md`** — the master newsroom manual (philosophy, standards, review, competitive moat, manifesto).
+3. **`LOCAL_JOURNALISM.md`** — how we report a place to newsroom depth; the Local Authenticity Test.
+4. **`RESEARCH_WORKFLOW.md`** — the investigative workflow and the source-reliability tiers (1-4).
+5. **`PUBLISH_GATE.md`** — claim verification statuses, the publish gate, and content maintenance/refresh.
+6. **`KNOWLEDGE_OS.md`** — the Knowledge Operating System: entity model, relationships, lifecycle, provenance, ownership.
+7. **`dossiers/README.md`** — the research dossier system, plus 10 production templates.
+8. **`AI_EDITOR_GUIDELINES.md`** — how AI (Lucy + future) operates under the manual.
+9. **`EDITOR_CHECKLIST.md`** — the reviewable checklist that enforces the publish gate.
 
 ## Document map
 
 ```
 docs/editorial/
-  INDEX.md                 â you are here
+  INDEX.md                 ← you are here
   IMPLEMENTATION_MAP.md    audit + integration
   EDITORIAL_OS.md          master manual
   LOCAL_JOURNALISM.md      local reporting + authenticity test
@@ -124,12 +124,12 @@ research/
 
 ## How it connects to existing docs (preserved, not modified)
 
-- `../platform-architecture.md` â product/IA vision. The editorial system produces the *content and knowledge* that fill its Discover/Learn/Emergency pillars.
-- `../roadmap.md` â the SEO/Content/Local roadmaps; this foundation operationalizes their "programmatic city pages, done well" intent.
-- `../knowledge-graph.md` â the conceptual entity map. **Extended (not replaced)** by `KNOWLEDGE_OS.md`.
-- `../lucy-brain.md` â Lucy's guardrails. **Inherited** by `AI_EDITOR_GUIDELINES.md`.
-- `../brand-bible.md` â voice/trust. The Editorial OS is consistent with it.
-- Public `/editorial-standards/` â its private engine is this `docs/editorial/` set.
+- `../platform-architecture.md` — product/IA vision. The editorial system produces the *content and knowledge* that fill its Discover/Learn/Emergency pillars.
+- `../roadmap.md` — the SEO/Content/Local roadmaps; this foundation operationalizes their "programmatic city pages, done well" intent.
+- `../knowledge-graph.md` — the conceptual entity map. **Extended (not replaced)** by `KNOWLEDGE_OS.md`.
+- `../lucy-brain.md` — Lucy's guardrails. **Inherited** by `AI_EDITOR_GUIDELINES.md`.
+- `../brand-bible.md` — voice/trust. The Editorial OS is consistent with it.
+- Public `/editorial-standards/` — its private engine is this `docs/editorial/` set.
 
 ## The one-line summary
 
