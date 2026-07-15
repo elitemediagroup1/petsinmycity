@@ -68,10 +68,14 @@ The data model that the Knowledge OS describes is now specified in
 - [`knowledge-graph/RELATIONSHIPS.md`](knowledge-graph/RELATIONSHIPS.md) — the edge catalog.
 - [`knowledge-graph/MACHINE_SCHEMA.yaml`](knowledge-graph/MACHINE_SCHEMA.yaml) — machine-readable source of truth.
 - [`knowledge-graph/SURFACES.md`](knowledge-graph/SURFACES.md) — how the graph powers articles, Lucy, My Pets, search, recommendations, maps, and APIs.
+- [`knowledge-graph/LIFECYCLE.md`](knowledge-graph/LIFECYCLE.md) — the verification state machine (11 states) and confidence decay.
+- [`knowledge-graph/ARCHITECTURE.md`](knowledge-graph/ARCHITECTURE.md) — the system map, request-to-render data flow, decade-scale model, and integration seams.
+- [`knowledge-graph/DECISIONS.md`](knowledge-graph/DECISIONS.md) — Architecture Decision Records (ADRs).
 
 The first populated instance lives in
-[`../../research/austin/graph/`](../../research/austin/graph/): honest,
-mostly-unverified Austin knowledge objects plus a population plan to 2,000+ objects.
+[`../../research/austin/graph/`](../../research/austin/graph/): the honest,
+mostly-unverified `austin.entities.yaml` seed, the exhaustive `austin.skeleton.yaml`
+category map (structure only, no invented facts), and a population plan to 2,000+ objects.
 This layer **extends** the Knowledge OS; it does not replace it.
 # Editorial & Knowledge Foundation — Index
 
