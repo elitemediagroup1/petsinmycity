@@ -134,3 +134,37 @@ research/
 ## The one-line summary
 
 Report before we write; verify before we publish; store knowledge in the graph so it is reused everywhere and corrected everywhere; and never publish anything that fails the name-swap test or the publish gate. Trust is the objective; rankings are a byproduct.
+
+---
+
+## Production layer — City Production System (Sprint 6)
+
+The Editorial OS and Knowledge OS above define **what good is**. The `production/` directory (added in Sprint 6) defines **how PetsInMyCity manufactures that quality repeatedly for 10,000+ cities**. It extends — and never redesigns — the systems in this index.
+
+Start at `../../production/CITY_PRODUCTION_SYSTEM.md`, then:
+
+```
+production/
+  CITY_PRODUCTION_SYSTEM.md   backbone, philosophy, index, scaling guarantees
+  WORKFLOW.md                 24-stage / 6-phase production pipeline (challenged & refined)
+  ROLE_DEFINITIONS.md         human + AI roles, authority, approval rights, escalation
+  RESEARCH_PIPELINE.md        how work flows between operational queues
+  QUEUE_SPECIFICATION.md      every queue: entry/exit, owner, SLA, state mapping
+  CITY_PRIORITY_ENGINE.md     scoring model for selecting/sequencing cities
+  QUALITY_ASSURANCE.md        per-city 10-dimension quality score
+  DASHBOARDS.md               City/National/Research/Editorial/Knowledge specs
+  MAINTENANCE_SYSTEM.md       cadences, triggers, auto re-enqueue, de-publishing
+  AUTOMATION_GUIDELINES.md    what AI should / must never automate, and why
+  REPORTING_METRICS.md        KPIs, guardrails, anti-gaming definitions
+  DECISIONS.md                Sprint 6 ADRs (0013–0018)
+```
+
+How the production layer maps back to this foundation:
+
+- **Editorial OS** → becomes staffed, queued, measurable stages (Phases B–D of `WORKFLOW.md`).
+- **Publish Gate** → a hard workflow stage with named approvers (`ROLE_DEFINITIONS.md`).
+- **Knowledge OS + Machine Schema** → graph-health + schema-validation gates and a maintenance/expiry engine.
+- **Verification Lifecycle (11 states)** → every state mapped to a queue, owner, and dashboard signal (`QUEUE_SPECIFICATION.md`).
+- **Austin Pilot** → generalized into a repeatable city template, the calibration anchor for quality scoring, and the source of ADRs 0007–0012 that the CPS builds on.
+
+The ADR log is continuous: KG `knowledge-graph/DECISIONS.md` (0001–0006) → Austin pilot `SCHEMA_FINDINGS_AND_ADRS.md` (0007–0012) → `production/DECISIONS.md` (0013–0018).
