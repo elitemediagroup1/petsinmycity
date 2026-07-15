@@ -1,0 +1,93 @@
+# Austin Verified Knowledge Pilot — Claims (sourced assertions, separated from entities)
+# A claim binds a subject to a predicate/value WITH its own provenance + lifecycle.
+# Time-bound events (weather, closures) are claims with valid_from/valid_until, NOT evergreen facts.
+
+schema_version: 0.2.0
+dataset: austin-pilot/claims
+
+claims:
+
+  # ---- Durable sourced claims ----
+  - id: claim/austin/in-travis-county
+    subject: place/tx/austin
+    predicate: located_in_county
+    value: place/tx/travis
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    sources:
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED (COUNTY=Travis)", accessed: 2026-07-15}
+
+  - id: claim/aas/jurisdiction
+    subject: org/shelter/tx/austin/austin-animal-center
+    predicate: serves_jurisdiction
+    value: "City of Austin + unincorporated Travis County"
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov/animal-services", accessed: 2026-07-15}
+
+  - id: claim/redbud/leash-designation
+    subject: place/tx/austin/red-bud-isle
+    predicate: off_leash_designation
+    value: unknown
+    confidence: 40
+    verification: needs_verification
+    safety_critical: true
+    note: "Widely reported off-leash; MUST confirm on official PARD Dog Off-Leash Area Map PDF before admitting"
+    sources:
+      - {tier: 1, kind: gov, url: "austin.widen.net/s/ffqbhzsgwf/dog_off_leash_area_map_v5 (binary PDF, not yet inspected)", accessed: 2026-07-15}
+
+  # ---- SAFETY-CRITICAL emergency-vet availability claims (provider-official) ----
+  - id: claim/veg-south-lamar/24-7
+    subject: org/emergency-vet/tx/austin/veg-south-lamar
+    predicate: emergency_availability
+    value: "24/7 walk-in emergency"
+    confidence: 95
+    verification: verified
+    safety_critical: true
+    valid_from: 2026-07-15
+    review_by: 2026-08-14
+    sources:
+      - {tier: 1, kind: provider-official, url: "veg.com/locations/texas/south-lamar-austin", accessed: 2026-07-15}
+
+  - id: claim/medvet-austin/24-7
+    subject: org/emergency-vet/tx/austin/medvet-austin
+    predicate: emergency_availability
+    value: "24/7 ER, no appointment"
+    confidence: 95
+    verification: verified
+    safety_critical: true
+    valid_from: 2026-07-15
+    review_by: 2026-08-14
+    sources:
+      - {tier: 1, kind: provider-official, url: "medvet.com/location/austin", accessed: 2026-07-15}
+
+  - id: claim/aves/24-7
+    subject: org/emergency-vet/tx/austin/aves
+    predicate: emergency_availability
+    value: "24/7/365 emergency"
+    confidence: 90
+    verification: verified
+    safety_critical: true
+    valid_from: 2026-07-15
+    review_by: 2026-08-14
+    sources:
+      - {tier: 1, kind: provider-official, url: "austinvets.com", accessed: 2026-07-15}
+
+  # ---- DYNAMIC / time-bound events (NOT evergreen) ----
+  - id: event/2026-07-14/flood-watch
+    subject: concept/hazard/austin-flooding
+    predicate: active_alert
+    value: "Flood Watch (NWS EWX)"
+    kind: dynamic_event
+    confidence: 98
+    verification: verified
+    safety_critical: true
+    valid_from: 2026-07-14T13:59:00-05:00
+    valid_until: 2026-07-16T19:00:00-05:00
+    expires: true            # MUST NOT be rendered as evergreen; auto-expire after valid_until
+    area: "NWS Austin/San Antonio counties (incl. Travis-area)"
+    sources:
+      - {tier: 1, kind: gov, url: "api.weather.gov/alerts/active?area=TX", accessed: 2026-07-15}
