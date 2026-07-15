@@ -1,0 +1,91 @@
+# Austin Verified Knowledge Pilot — Care-concept entities (laws, hazards, wildlife, climate/season)
+# Instance of docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml. Sprint 5.
+# Evergreen knowledge ONLY. Live weather/alerts live in claims.yaml as time-bound status claims.
+
+schema_version: 0.2.0
+dataset: austin-pilot/concepts
+
+entities:
+
+  # ---- Law / regulation ----
+  - id: concept/law/austin-restraint
+    type: CareConcept.Law
+    name: Austin dog restraint / running-at-large rule
+    aliases: ["Austin leash law"]
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: true      # affects owner compliance + dog/wildlife/human safety
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      governing_source: "Austin City Code Title 3 (Animal Regulation)"
+      key_sections:
+        - "3-2-1 Running at Large Prohibited: owner/handler may not allow a dog to run at large (except as provided in this title)"
+        - "3-1-1(16) RESTRAINT = secure enclosure OR direct physical control by leash, cord, chain, or similar"
+        - "3-1-1(18) RUNNING AT LARGE = not under direct physical control, or not physically restrained within owners premises"
+      off_leash_exception: "Permitted only in PARD-designated off-leash areas (see PARD Dog Off-Leash Area Map)"
+      codified_through: "Ord. No. 20260226-050, effective 2026-03-09 (Supp. 173)"
+    sources:
+      - {tier: 1, kind: gov, url: "library.municode.com/tx/austin/codes/code_of_ordinances?nodeId=TIT3ANRE", accessed: 2026-07-15, quote: "may not allow ... a dog ... to run at large"}
+      - {tier: 1, kind: gov, url: "austintexas.gov/parks", accessed: 2026-07-15, quote: "leash ordinance requires dogs to be on a leash unless"}
+
+  # ---- Climate / season (evergreen) ----
+  - id: concept/climate/central-texas-heat
+    type: CareConcept.Climate
+    name: Central Texas summer heat pattern (pet-relevant)
+    status: active
+    confidence: 60             # durable pattern acknowledged; Austin-specific normals not yet captured verbatim
+    verification: needs_verification
+    safety_critical: true
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      nature: "Evergreen seasonal climate pattern (hot summers); distinct from live heat advisories"
+      authority: org/gov/us/nws-ewx
+      pending: "Capture Austin NOAA/NWS climate normals (avg highs, heat-season months) verbatim before verifying"
+      do_not: "Do NOT assert a universal pavement/temperature cutoff without a veterinary/authoritative source"
+    sources:
+      - {tier: 1, kind: gov, url: "weather.gov/ewx", accessed: 2026-07-15}
+
+  # ---- Hazards ----
+  - id: concept/hazard/austin-flooding
+    type: CareConcept.Hazard
+    name: Flash-flood / water hazard (Austin waterways)
+    aliases: ["Flash Flood Alley"]  # label pending verbatim confirmation (needs_verification)
+    status: active
+    confidence: 75
+    verification: needs_verification   # regional flood risk real; Barton-Creek-always-floods wording NOT asserted
+    safety_critical: true
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      nature: "Evergreen hazard; realized as DYNAMIC time-bound events via NWS alerts (see claims.yaml)"
+      managing_authority: org/gov/tx/austin/watershed
+      alert_source: org/gov/us/nws-ewx
+      seasonal_weather_dependent: true
+      safety_message: "Turn Around - Dont Drown (R)"
+      do_not: "Do NOT claim any specific trail/park always floods unless official wording supports it"
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov (Austin Watershed Protection)", accessed: 2026-07-15}
+
+  # ---- Wildlife ----
+  - id: concept/wildlife/texas-venomous-snakes
+    type: CareConcept.Wildlife
+    name: Venomous snakes of Texas (pet-owner precautions)
+    status: active
+    confidence: 90
+    verification: verified
+    safety_critical: true
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      scope: "Texas (statewide) - do NOT over-localize to specific Austin parks"
+      groups: [copperheads, cottonmouths, rattlesnakes, coral-snakes]
+      species_count: "15 potentially dangerous species/subspecies statewide"
+      context: "More TX deaths annually from lightning than venomous snakebite; snakes do not hunt humans"
+      precautions: "Watch hands/feet; do not reach where you cant see; flashlight at night; protective footwear; let snake retreat"
+      first_aid_authority: "TPWD refers to CDC/NIOSH for snakebite first aid"
+      austin_localization: needs_verification
+    sources:
+      - {tier: 1, kind: gov, url: "tpwd.texas.gov/education/resources/texas-junior-naturalists/snakes-alive/venomous-texas-snakes", accessed: 2026-07-15, quote: "15 potentially dangerous snake species"}
