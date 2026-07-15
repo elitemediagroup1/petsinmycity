@@ -1,0 +1,152 @@
+# PetsInMyCity Knowledge Graph — Machine Schema
+# Source of truth for the schema layer. Human docs (ENTITIES.md,
+# RELATIONSHIPS.md, SCHEMA_CONVENTIONS.md) must agree with this file.
+# Policy definitions (confidence bands, verification lifecycle, ownership)
+# live in ../KNOWLEDGE_OS.md and are referenced here, not redefined.
+
+schema_version: 0.1.0
+status: draft            # draft until PR #3 review; do not treat as stable API
+maintainer: editorial
+
+# ---------------------------------------------------------------------------
+# ENVELOPE: carried by every entity and every assertion
+# ---------------------------------------------------------------------------
+envelope:
+  identity:
+    id: {type: string, required: true, immutable: true, pattern: "family/scope/slug"}
+    type: {type: enum, required: true, ref: entity_types}
+    name: {type: string, required: true}
+    aliases: {type: [string], default: []}
+    parent: {type: id, required: false}
+    geo: {lat: float, lng: float, precision: {enum: [rooftop, centroid, approx]}}
+    status: {type: enum, values: [active, seasonal, closed, unverified-existence]}
+  trust:
+    confidence: {type: int, min: 0, max: 100, ref: "KNOWLEDGE_OS#confidence"}
+    verification:
+      type: enum
+      values: [unverified, researching, verified, disputed, stale]
+      default: unverified
+    safety_critical: {type: bool, default: false}
+  stewardship:
+    owner: {type: string, required_when: "verification == verified"}
+    last_reviewed: {type: date}
+    review_cadence: {type: enum, values: [realtime, weekly, monthly, quarterly, annual, event]}
+    next_review: {type: date, derived: "last_reviewed + review_cadence"}
+  provenance:
+    sources:
+      type: list
+      required_when: "verification == verified"
+      item:
+        tier: {type: int, min: 1, max: 4, required: true}
+        kind: {enum: [gov, agency, publication, primary-doc, operator, community-lead]}
+        url: {type: string}
+        accessed: {type: date}
+        quote: {type: string, note: "keep minimal; respect copyright"}
+        captured_by: {type: string}
+    derived_from: {type: [id], default: []}
+
+# ---------------------------------------------------------------------------
+# GATES: enforced before an assertion may publish to any surface
+# ---------------------------------------------------------------------------
+publish_gates:
+  general:
+    - "verification == verified"
+    - "confidence >= surface.threshold"
+    - "owner is set"
+    - "next_review in the future"
+  safety_floor:            # applies when safety_critical == true
+    - "at least one source with tier <= 2"
+    - "no source of kind community-lead may satisfy the requirement"
+    - "action/response fields present for hazard & wildlife"
+  never:
+    - "community-lead source raises confidence to verified"
+    - "Signal.Review reproduced verbatim"
+    - "Signal.CommunityInsight rendered as fact without re-verification"
+
+confidence_bands:          # summary; authoritative text in KNOWLEDGE_OS.md
+  - {range: "90-100", auto_assembly: true, safety: allowed}
+  - {range: "75-89",  auto_assembly: true, safety: "editor sign-off"}
+  - {range: "50-74",  auto_assembly: false, safety: no}
+  - {range: "0-49",   auto_assembly: false, safety: no}
+
+# ---------------------------------------------------------------------------
+# ENTITY TYPES  (type-specific fields; all also carry the envelope)
+# ---------------------------------------------------------------------------
+entity_types:
+  place:
+    [Place.Country, Place.State, Place.Metro, Place.County, Place.City,
+     Place.Town, Place.Neighborhood, Place.ZIP]
+  facility:
+    [Facility.Park, Facility.DogPark, Facility.Trail, Facility.Beach,
+     Facility.Lake, Facility.Campground, Facility.DogFriendlyRestaurant,
+     Facility.Apartment, Facility.HOA]
+  organization:
+    [Org.Veterinarian, Org.EmergencyVet, Org.Shelter, Org.Rescue,
+     Org.Groomer, Org.Boarding, Org.Daycare, Org.Trainer]
+  care_concept:
+    [CareConcept.Species, CareConcept.Breed, CareConcept.Climate,
+     CareConcept.Season, CareConcept.WeatherPattern, CareConcept.Wildlife,
+     CareConcept.Hazard, CareConcept.Law, CareConcept.Regulation,
+     CareConcept.Activity]
+  signal:
+    [Signal.CommunityInsight, Signal.Recommendation, Signal.Review,
+     Signal.Cost, Signal.Event]
+
+# safety_critical defaults by type (override per-assertion as needed)
+safety_defaults:
+  true:
+    [Org.EmergencyVet, CareConcept.Wildlife, CareConcept.Hazard,
+     CareConcept.Law, CareConcept.Climate]
+  contextual:              # some fields safety-critical, not all
+    [Facility.Trail, Facility.Beach, Facility.Lake, Facility.Campground,
+     Facility.Apartment, Facility.HOA, CareConcept.Breed, CareConcept.Season]
+
+# ---------------------------------------------------------------------------
+# EDGES  (fact = carries envelope & can gate a surface)
+# ---------------------------------------------------------------------------
+edges:
+  structural:              # fact: false
+    - {name: contains,     inverse: within,   card: 1_to_many}
+    - {name: part_of_metro,                    card: many_to_1}
+    - {name: located_in,                       card: many_to_1}
+    - {name: overlaps,                         card: many_to_many}
+    - {name: administers,                      card: 1_to_many}
+  care_hazard:            # fact: true, mostly safety
+    - {name: has_climate,          card: many_to_1,   fact: true, safety: true}
+    - {name: experiences,          card: many_to_many, fact: true, safety: true}
+    - {name: has_hazard,           card: many_to_many, fact: true, safety: true}
+    - {name: hosts_wildlife,       card: many_to_many, fact: true, safety: true}
+    - {name: dangerous_during,     card: many_to_many, fact: true, safety: true}
+    - {name: governed_by,          card: many_to_many, fact: true, safety: true}
+    - {name: restricts_breed,      card: many_to_many, fact: true, safety: true}
+    - {name: recommended_response, card: many_to_many, fact: true, safety: true}
+  suitability_service:    # fact: true
+    - {name: suitable_for,      card: many_to_many, fact: true}
+    - {name: allows,            card: many_to_many, fact: true}
+    - {name: prohibits,         card: many_to_many, fact: true}
+    - {name: provides_service,  card: many_to_many, fact: true}
+    - {name: treats,            card: many_to_many, fact: true}
+    - {name: refers_emergency_to, card: many_to_1,  fact: true}
+    - {name: adopts_out,        card: many_to_many, fact: true}
+  signal:                 # fact: true, strict provenance
+    - {name: recommends,       fact: true, requires: derived_from_verified}
+    - {name: references_review, fact: true, note: aggregate_only}
+    - {name: insight_about,    fact: false, note: lead_only}
+    - {name: costs_at,         fact: true, dated: true}
+    - {name: event_at,         fact: true, expiring: true}
+  cross_place:
+    - {name: nearest,       fact: true, derived: true}
+    - {name: serves_area,   fact: true}
+    - {name: comparable_to, fact: true, safety: false}
+
+# ---------------------------------------------------------------------------
+# SURFACES: consumers of the graph and their confidence thresholds
+# ---------------------------------------------------------------------------
+surfaces:
+  article:        {threshold: 90, safety_floor: true}
+  lucy:           {threshold: 90, safety_floor: true, unknowns: "say we don't know"}
+  my_pets:        {threshold: 85, safety_floor: true}
+  search:         {threshold: 75, safety_floor: true}
+  recommendations:{threshold: 90, safety_floor: true, requires: derived_from_verified}
+  maps:           {threshold: 80, safety_floor: true}
+  api:            {threshold: 90, safety_floor: true, exposes: [confidence, verification, sources]}

@@ -1,0 +1,106 @@
+# Austin — Knowledge Graph: Relationships (seed)
+# Edges wiring austin.entities.yaml into Austin's graph.
+# Edge types defined in docs/editorial/knowledge-graph/RELATIONSHIPS.md
+#
+# Each fact-bearing edge carries its own envelope. Consistent with the entities
+# file, safety edges are seeded 'unverified'/'researching' until sourced --
+# they are the LAST things to publish, not the first.
+
+instance: austin
+schema_ref: ../../../docs/editorial/knowledge-graph/RELATIONSHIPS.md
+
+# ---- STRUCTURAL EDGES (fact: false) — the containment spine ----------------
+structural:
+  - {edge: contains, from: place/tx, to: place/tx/austin}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/south-congress}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/east-austin}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/mueller}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/zilker-park}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/red-bud-isle}
+  - {edge: contains, from: place/tx/austin, to: place/tx/austin/barton-creek-greenbelt}
+  - {edge: located_in, from: org/shelter/tx/austin/austin-animal-center, to: place/tx/austin}
+  - {edge: administers, from: place/tx/austin, to: org/shelter/tx/austin/austin-animal-center, verification: researching, confidence: 70}
+
+# ---- CARE & HAZARD EDGES (fact: true, safety-critical) ---------------------
+# These are the reason the graph exists. All seeded unverified/researching.
+care_hazard:
+  - edge: has_climate
+    from: place/tx/austin
+    to: concept/climate/central-texas
+    safety_critical: true
+    verification: researching
+    confidence: 40
+
+  - edge: experiences
+    from: place/tx/austin
+    to: concept/hazard/flash-flood-austin
+    safety_critical: true
+    verification: researching
+    confidence: 45
+    note: "Central Texas 'Flash Flood Alley'. Verify season with NWS."
+
+  - edge: has_hazard
+    from: place/tx/austin
+    to: concept/hazard/heat-austin
+    safety_critical: true
+    verification: researching
+    confidence: 45
+
+  - edge: hosts_wildlife
+    from: place/tx/austin
+    to: concept/wildlife/venomous-snakes-austin
+    safety_critical: true
+    verification: researching
+    confidence: 40
+
+  - edge: governed_by
+    from: place/tx/austin
+    to: concept/law/austin-leash
+    safety_critical: true
+    verification: unverified
+    confidence: 30
+    note: "Must cite exact Austin City Code section before any leash claim."
+
+  # Facility-level hazards
+  - edge: has_hazard
+    from: place/tx/austin/red-bud-isle
+    to: concept/hazard/flash-flood-austin      # placeholder link; algae hazard TBD
+    safety_critical: true
+    verification: unverified
+    confidence: 25
+    note: "PRIORITY: blue-green algae on Lady Bird Lake -- create dedicated algae hazard object once sourced. Historical dog deaths reported."
+
+  - edge: dangerous_during
+    from: place/tx/austin/barton-creek-greenbelt
+    to: concept/hazard/flash-flood-austin
+    safety_critical: true
+    verification: unverified
+    confidence: 25
+    note: "Low-water crossings unsafe in flash-flood conditions -- verify."
+
+  - edge: recommended_response
+    from: concept/wildlife/venomous-snakes-austin
+    to: org/emergency-vet/tx/austin/PLACEHOLDER
+    safety_critical: true
+    verification: unverified
+    confidence: 15
+    note: "Link venom exposure to a VERIFIED 24/7 ER with antivenom. Blocked until an emergency vet is identified & confirmed."
+
+# ---- SERVICE / SUITABILITY EDGES (fact: true) -----------------------------
+service:
+  - edge: refers_emergency_to
+    from: org/shelter/tx/austin/austin-animal-center   # example pathway; refine
+    to: org/emergency-vet/tx/austin/PLACEHOLDER
+    verification: unverified
+    confidence: 10
+    note: "Placeholder until emergency vet identified."
+
+# ---------------------------------------------------------------------------
+# EDGE SUMMARY
+#   structural: 9 (non-fact)
+#   care_hazard: 8 (all safety-critical; 4 researching, 4 unverified)
+#   service: 1 (unverified)
+#
+# PUBLISH ORDER (from POPULATION_PLAN.md): safety edges first, and no
+# safety-critical edge publishes until it resolves to a verified Tier 1-2
+# assertion. The PLACEHOLDER emergency-vet node blocks several edges by design.

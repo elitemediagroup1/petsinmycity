@@ -1,0 +1,209 @@
+# Austin — Knowledge Graph: Entities (seed)
+# Instance of docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml
+#
+# HONESTY RULE: nothing here is "verified" without a real Tier 1-2 source.
+# Live reporting is a later sprint, so most objects are 'unverified' or
+# 'researching' ON PURPOSE. This file demonstrates the shape and the honest
+# starting state of Austin's graph -- not a finished, fabricated city.
+#
+# Existence of well-known public places (e.g. Zilker Park, Austin Animal Center)
+# is widely documented and seeded as status: active; but their *pet-relevant
+# attributes and safety facts* remain unverified until sourced.
+
+instance: austin
+place_root: place/tx/austin
+schema_ref: ../../../docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml
+seeded_on: 2026-07-15
+seeded_by: editorial (Claude-assisted; no facts fabricated)
+
+entities:
+
+  # ---- PLACE SPINE ----------------------------------------------------------
+  - id: place/tx
+    type: Place.State
+    name: Texas
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    sources:
+      - {tier: 1, kind: gov, url: "census.gov", accessed: 2026-07-15, quote: "state of Texas"}
+
+  - id: place/tx/austin
+    type: Place.City
+    name: Austin
+    aliases: [ATX, "Austin, TX"]
+    parent: place/tx
+    status: active
+    geo: {precision: centroid}
+    confidence: 90
+    verification: verified          # existence only
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:                     # each an assertion; states are honest
+      county: {value: "Travis County (primary)", verification: researching, confidence: 60}
+      leash_ordinance:              # SAFETY-CRITICAL
+        value: null
+        verification: unverified
+        safety_critical: true
+        note: "Austin City Code leash rule -- must source before publishing."
+      animal_services_provider: {value: "Austin Animal Center", verification: researching, confidence: 70}
+      local_character: {value: null, verification: unverified, note: "Prose seed pending Local Authenticity pass."}
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov", accessed: 2026-07-15, quote: "City of Austin"}
+
+  # A few representative neighborhoods (existence widely documented; attrs TBD)
+  - {id: place/tx/austin/south-congress, type: Place.Neighborhood, name: "South Congress (SoCo)", parent: place/tx/austin, status: active, verification: researching, confidence: 55, owner: editorial, review_cadence: quarterly}
+  - {id: place/tx/austin/east-austin,   type: Place.Neighborhood, name: "East Austin", parent: place/tx/austin, status: active, verification: researching, confidence: 55, owner: editorial, review_cadence: quarterly}
+  - {id: place/tx/austin/mueller,       type: Place.Neighborhood, name: "Mueller", parent: place/tx/austin, status: active, verification: researching, confidence: 55, owner: editorial, review_cadence: quarterly}
+
+  # ---- FACILITIES -----------------------------------------------------------
+  - id: place/tx/austin/zilker-park
+    type: Facility.Park
+    name: Zilker Metropolitan Park
+    parent: place/tx/austin
+    status: active
+    confidence: 80
+    verification: researching       # existence documented; pet rules NOT yet verified
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      off_leash_areas: {value: null, verification: unverified, safety_critical: true, note: "Confirm designated off-leash zones w/ Austin PARD."}
+      leash_rules:     {value: null, verification: unverified, safety_critical: true}
+      shade:           {value: null, verification: unverified, safety_critical: true, note: "Heat exposure detail."}
+      water_access:    {value: null, verification: unverified}
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov/department/parks-and-recreation", accessed: 2026-07-15, quote: "Zilker Metropolitan Park"}
+
+  - id: place/tx/austin/red-bud-isle
+    type: Facility.DogPark
+    name: Red Bud Isle
+    parent: place/tx/austin
+    status: active
+    confidence: 70
+    verification: researching
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      off_leash:            {value: null, verification: unverified, safety_critical: true}
+      blue_green_algae_risk: {value: null, verification: unverified, safety_critical: true, note: "Lady Bird Lake algae advisories -- HIGH priority, dog deaths reported historically; verify with Watershed Protection."}
+      water_access:         {value: null, verification: unverified}
+
+  - id: place/tx/austin/barton-creek-greenbelt
+    type: Facility.Trail
+    name: Barton Creek Greenbelt
+    parent: place/tx/austin
+    status: active
+    confidence: 70
+    verification: researching
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      length_mi:      {value: null, verification: unverified}
+      shade_pct:      {value: null, verification: unverified, safety_critical: true}
+      water_on_route: {value: null, verification: unverified, safety_critical: true, note: "Seasonal/dry; flash-flood risk."}
+      hazards:        {value: null, verification: unverified, safety_critical: true}
+
+  # ---- ORGANIZATIONS --------------------------------------------------------
+  - id: org/shelter/tx/austin/austin-animal-center
+    type: Org.Shelter
+    name: Austin Animal Center
+    parent: place/tx/austin
+    status: active
+    confidence: 80
+    verification: researching
+    owner: editorial
+    review_cadence: monthly
+    attributes:
+      municipal:        {value: true, verification: researching, confidence: 75}
+      lost_found_process: {value: null, verification: unverified, safety_critical: true}
+      hold_period:      {value: null, verification: unverified, safety_critical: true, note: "Stray hold period -- source from City Code."}
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov/department/aac", accessed: 2026-07-15, quote: "Austin Animal Center"}
+
+  - id: org/emergency-vet/tx/austin/PLACEHOLDER
+    type: Org.EmergencyVet
+    name: "(to identify via TX Board of Veterinary Medical Examiners + operator confirmation)"
+    parent: place/tx/austin
+    status: unverified-existence
+    confidence: 20
+    verification: unverified
+    safety_critical: true
+    owner: editorial
+    review_cadence: monthly
+    attributes:
+      "24_7":          {value: null, verification: unverified, safety_critical: true, note: "HIGHEST-STAKES FACT. Operator/webpage confirmation required; never inferred."}
+      er_capabilities: {value: null, verification: unverified, safety_critical: true}
+
+  # ---- CARE CONCEPTS (attach via relationships, not containment) -------------
+  - id: concept/climate/central-texas
+    type: CareConcept.Climate
+    name: Central Texas climate (Austin)
+    confidence: 40
+    verification: researching
+    safety_critical: true
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      summer_high_range:    {value: null, verification: unverified, safety_critical: true, note: "NOAA normals -- source before publishing heat guidance."}
+      pavement_risk_window: {value: null, verification: unverified, safety_critical: true, note: "Paw-burn window derived from surface temps."}
+
+  - id: concept/hazard/heat-austin
+    type: CareConcept.Hazard
+    name: Extreme heat (Austin)
+    confidence: 45
+    verification: researching
+    safety_critical: true
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      severity: {value: null, verification: unverified, safety_critical: true}
+      onset:    {value: null, verification: unverified, safety_critical: true}
+      symptoms: {value: null, verification: unverified, safety_critical: true}
+      action:   {value: null, verification: unverified, safety_critical: true}
+
+  - id: concept/hazard/flash-flood-austin
+    type: CareConcept.WeatherPattern
+    name: Flash flooding (Central Texas / Austin)
+    confidence: 45
+    verification: researching
+    safety_critical: true
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      season:     {value: null, verification: unverified, safety_critical: true, note: "'Flash Flood Alley' -- verify season w/ NWS Austin/San Antonio."}
+      pet_impact: {value: null, verification: unverified, safety_critical: true}
+
+  - id: concept/wildlife/venomous-snakes-austin
+    type: CareConcept.Wildlife
+    name: Venomous snakes (Austin area)
+    confidence: 40
+    verification: researching
+    safety_critical: true
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      species:       {value: null, verification: unverified, safety_critical: true, note: "Copperhead, coral snake, rattlesnake -- verify w/ TX Parks & Wildlife."}
+      active_season: {value: null, verification: unverified, safety_critical: true}
+      first_response: {value: null, verification: unverified, safety_critical: true, note: "Link to verified emergency vet w/ antivenom."}
+
+  - id: concept/law/austin-leash
+    type: CareConcept.Law
+    name: Austin leash ordinance
+    confidence: 30
+    verification: unverified
+    safety_critical: true
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      citation:     {value: null, verification: unverified, safety_critical: true, note: "Austin City Code chapter/section -- must cite exactly."}
+      effective_date: {value: null, verification: unverified}
+
+# ---------------------------------------------------------------------------
+# SEED SUMMARY
+#   place: 6 | facility: 3 | organization: 3 | care_concept: 5 | signal: 0
+#   verified (existence only): 2 | researching: 11 | unverified: 4
+# This is the honest floor. POPULATION_PLAN.md describes growth to 2,000+.
