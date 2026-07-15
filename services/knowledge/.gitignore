@@ -1,0 +1,8 @@
+# Local database artifacts (the store is a rebuildable artifact; YAML is source of record)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Dependencies
+node_modules/
