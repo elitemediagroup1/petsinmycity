@@ -1,0 +1,167 @@
+# Austin Verified Knowledge Pilot — Organization & Agency entities
+# Instance of docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml. Sprint 5.
+# Emergency-vet records are SAFETY-CRITICAL: verified on each providers OWN official site,
+# never from directories/aggregators. Short review windows (hours/status change).
+
+schema_version: 0.2.0
+dataset: austin-pilot/orgs
+
+entities:
+
+  # ---- Governing agencies ----
+
+  - id: org/gov/tx/austin/pard
+    type: Org.GovAgency        # PROPOSED type (see ../../pilot/ADRS.md ADR-0007)
+    name: City of Austin Parks and Recreation Department
+    aliases: [PARD, "Austin Parks and Recreation"]
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      role: "Owner/managing authority for Austin parks, trails, greenbelts; designates off-leash areas"
+      url: "https://www.austintexas.gov/parks"
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov/parks", accessed: 2026-07-15}
+      - {tier: 1, kind: gov, url: "services.arcgis.com/0L95CJ0VTaxqcmED (MANAGING_NAME=City of Austin Parks and Recreation)", accessed: 2026-07-15}
+
+  - id: org/gov/tx/austin/watershed
+    type: Org.GovAgency
+    name: City of Austin Watershed Protection Department
+    aliases: [WPD, "Austin Watershed Protection"]
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      role: "Manages Citys creeks, drainage systems and water-quality programs; flood/erosion/pollution"
+      safety_message: "Turn Around - Dont Drown (R)"
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov (Austin Watershed Protection)", accessed: 2026-07-15, quote: "reducing the impact of flooding"}
+
+  - id: org/gov/us/nws-ewx
+    type: Org.GovAgency
+    name: National Weather Service - Austin/San Antonio (EWX)
+    aliases: [NWS EWX, "NWS Austin/San Antonio"]
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      role: "Authoritative forecast/watch/warning authority for the Austin area"
+      alert_feed: "https://api.weather.gov/alerts/active?area=TX"
+    sources:
+      - {tier: 1, kind: gov, url: "weather.gov/ewx", accessed: 2026-07-15}
+
+  - id: org/gov/tx/tpwd
+    type: Org.GovAgency
+    name: Texas Parks & Wildlife Department
+    aliases: [TPWD]
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: annual
+    attributes:
+      role: "State wildlife authority (statewide scope)"
+      url: "https://tpwd.texas.gov"
+    sources:
+      - {tier: 1, kind: gov, url: "tpwd.texas.gov", accessed: 2026-07-15}
+
+  # ---- Animal services / shelter ----
+
+  - id: org/shelter/tx/austin/austin-animal-center
+    type: Org.Shelter
+    name: Austin Animal Services (Austin Animal Center)
+    aliases: [AAS, "Austin Animal Center", AAC]
+    status: active
+    confidence: 98
+    verification: verified
+    safety_critical: false
+    owner: editorial
+    review_cadence: quarterly
+    attributes:
+      org_type: "Municipal open-intake shelter"
+      service_area: "City of Austin + unincorporated Travis County"
+      phone: "512-974-2000"
+      address: "7201 Levander Loop, Bldg. A, Austin, TX"
+      url: "https://www.austintexas.gov/animal-services"
+      hours_adoption_reclaim: "daily 11:00-19:00 (adoption lines close 18:00)"
+      hours_pet_resource_center: "Mon-Fri 11:00-16:00"
+      functions: [municipal-shelter, animal-protection, pet-resource-services, stray-and-owned-intake, adoption-foster-rescue]
+    sources:
+      - {tier: 1, kind: gov, url: "austintexas.gov/animal-services", accessed: 2026-07-15, quote: "municipal shelter for the City of Austin"}
+      - {tier: 1, kind: gov, url: "austintexas.gov/animal-services/contact", accessed: 2026-07-15}
+
+  # ---- Emergency veterinary (SAFETY-CRITICAL; provider-official) ----
+
+  - id: org/emergency-vet/tx/austin/veg-south-lamar
+    type: Org.EmergencyVet
+    name: Veterinary Emergency Group (VEG) - South Lamar Austin
+    aliases: [VEG South Lamar]
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: true
+    owner: editorial
+    review_cadence: 30d
+    next_review: 2026-08-14
+    attributes:
+      emergency_status: "24/7 emergency + urgent care; walk-in, no appointment"
+      hours: "Open 24/7 including holidays"
+      phone: "(737) 243-9408"
+      address: "4211 South Lamar Boulevard, Austin, TX 78704"
+      species_served: [dogs, cats, birds, rabbits, reptiles, rodents, exotics]
+      url: "https://www.veg.com/locations/texas/south-lamar-austin"
+    sources:
+      - {tier: 1, kind: provider-official, url: "veg.com/locations/texas/south-lamar-austin", accessed: 2026-07-15, quote: "open 24 hours a day, seven days a week"}
+
+  - id: org/emergency-vet/tx/austin/medvet-austin
+    type: Org.EmergencyVet
+    name: MedVet Austin
+    status: active
+    confidence: 95
+    verification: verified
+    safety_critical: true
+    owner: editorial
+    review_cadence: 30d
+    next_review: 2026-08-14
+    attributes:
+      emergency_status: "ER open 24/7; no appointment needed for emergencies (also specialty referral)"
+      hours: "24/7 ER"
+      phone: "737.931.0345"
+      address: "12400 North Interstate 35, Building B, Austin, TX 78753"
+      email: "info.austin@medvet.com"
+      species_served: [dogs, cats]
+      url: "https://www.medvet.com/location/austin/"
+    sources:
+      - {tier: 1, kind: provider-official, url: "medvet.com/location/austin", accessed: 2026-07-15, quote: "ER Open 24/7"}
+
+  - id: org/emergency-vet/tx/austin/aves
+    type: Org.EmergencyVet
+    name: Austin Veterinary Emergency & Specialty Center (AVES)
+    aliases: [AVES]
+    status: active
+    confidence: 90         # recent relocation lowers address confidence
+    verification: verified
+    safety_critical: true
+    owner: editorial
+    review_cadence: 30d
+    next_review: 2026-08-14
+    attributes:
+      emergency_status: "Open 24/7/365 for emergencies (specialty by appointment only)"
+      hours: "24/7/365"
+      phone: "(512) 343-2837"
+      address: "7501 North Capital of Texas Highway, Building A, Austin, TX 78731"
+      address_note: "Site shows recent relocation (We have Moved); re-verify address at next review"
+      service_area: [Austin, Pflugerville, Cedar Park, Leander, Georgetown, Round Rock]
+      url: "https://www.austinvets.com/"
+    sources:
+      - {tier: 1, kind: provider-official, url: "austinvets.com", accessed: 2026-07-15, quote: "Open 24/7/365 for Pet Emergencies"}
