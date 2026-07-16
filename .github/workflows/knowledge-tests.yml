@@ -1,8 +1,9 @@
 name: knowledge-tests
 
-# Minimal CI: install deps in services/knowledge and run storage + delivery tests.
-# Fails the PR on any test failure. No secrets used; SQLite tests use in-memory
-# or temp databases that are discarded when the runner exits.
+# Minimal CI: install deps in services/knowledge and run storage + delivery + API
+# tests. Fails the PR on any test failure. No secrets are required: the API tests
+# supply a temporary internal secret in-process and use in-memory SQLite fixtures
+# that are discarded when the runner exits.
 
 on:
   push:
@@ -10,6 +11,7 @@ on:
   pull_request:
     paths:
       - 'services/knowledge/**'
+      - 'netlify/functions/knowledge.js'
       - 'research/austin/**'
       - '.github/workflows/knowledge-tests.yml'
 
@@ -34,5 +36,5 @@ jobs:
       - name: Run migrations (smoke)
         run: npm run migrate -- ':memory:' || true
 
-      - name: Run tests (storage + delivery)
+      - name: Run tests (storage + delivery + api)
         run: npm test
