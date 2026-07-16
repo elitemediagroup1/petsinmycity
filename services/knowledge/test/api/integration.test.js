@@ -25,9 +25,9 @@ function invokeNetlifyStyle(service, event) {
 
 // ---------------- Austin integration through the full HTTP handler ----------------
 
-test('retrieve a verified Austin object through the full HTTP handler', () => {
-  const { service } = build();
-  const res = invokeNetlifyStyle(service, {
+test('retrieve a verified Austin object through the full HTTP handler', async () => {
+  const { service } = await build();
+  const res = await invokeNetlifyStyle(service, {
     httpMethod: 'POST', headers: AUTH,
     body: JSON.stringify({ subjectId: 'place/tx/austin', predicate: 'located_in_county', consumer: 'internal' }),
   });
@@ -37,18 +37,18 @@ test('retrieve a verified Austin object through the full HTTP handler', () => {
   assert.equal(body.envelope.items[0].payload.value.value, 'place/tx/travis');
 });
 
-test('a needs_verification Austin object remains unavailable via HTTP', () => {
-  const { service } = build();
-  const res = invokeNetlifyStyle(service, {
+test('a needs_verification Austin object remains unavailable via HTTP', async () => {
+  const { service } = await build();
+  const res = await invokeNetlifyStyle(service, {
     httpMethod: 'POST', headers: AUTH,
     body: JSON.stringify({ subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }),
   });
   assert.equal(res.statusCode, 404);
 });
 
-test('unknown Austin predicate returns the expected typed 404', () => {
-  const { service } = build();
-  const res = invokeNetlifyStyle(service, {
+test('unknown Austin predicate returns the expected typed 404', async () => {
+  const { service } = await build();
+  const res = await invokeNetlifyStyle(service, {
     httpMethod: 'POST', headers: AUTH,
     body: JSON.stringify({ subjectId: 'place/tx/austin', predicate: 'made_of_cheese' }),
   });
@@ -56,9 +56,9 @@ test('unknown Austin predicate returns the expected typed 404', () => {
   assert.equal(JSON.parse(res.body).result, 'not_found');
 });
 
-test('limited GET query form works for a verified object', () => {
-  const { service } = build();
-  const res = invokeNetlifyStyle(service, {
+test('limited GET query form works for a verified object', async () => {
+  const { service } = await build();
+  const res = await invokeNetlifyStyle(service, {
     httpMethod: 'GET', headers: AUTH,
     queryStringParameters: { subjectId: 'place/tx/austin', predicate: 'located_in_county' },
   });
@@ -67,31 +67,31 @@ test('limited GET query form works for a verified object', () => {
 
 // ---------------- Runtime initialization ----------------
 
-test('missing database/dataset configuration fails safely (no filesystem paths leaked)', () => {
-  assert.throws(() => build({ dataset: path.resolve(__dirname, 'no-such-dataset-dir') }));
+test('missing database/dataset configuration fails safely (no filesystem paths leaked)', async () => {
+  await assert.rejects(() => build({ dataset: path.resolve(__dirname, 'no-such-dataset-dir') }));
 });
 
 test('default dataset path resolves to the packaged Austin fixture', () => {
   assert.ok(DEFAULT_DATASET.endsWith(path.join('research', 'austin', 'pilot', 'data')));
 });
 
-test('temporary in-memory stores are isolated per build', () => {
-  const a = build();
-  const b = build();
+test('temporary in-memory stores are isolated per build', async () => {
+  const a = await build();
+  const b = await build();
   assert.notEqual(a.store, b.store);
-  a.store.close();
-  b.store.close();
+  await a.store.close();
+  await b.store.close();
 });
 
-test('repeated warm-style getService invocations reuse one store and do not corrupt state', () => {
-  _reset();
+test('repeated warm-style getService invocations reuse one store and do not corrupt state', async () => {
+  await _reset();
   process.env.KNOWLEDGE_API_INTERNAL_SECRET = SECRET;
-  const first = getService();
-  const second = getService();
+  const first = await getService();
+  const second = await getService();
   assert.equal(first, second);
   const call = (s) => handle({ method: 'POST', headers: AUTH, body: JSON.stringify({ subjectId: 'place/tx/austin', predicate: 'located_in_county' }) }, { service: s.service, env: ENV, diag: () => {} });
-  const r1 = call(first);
-  const r2 = call(second);
+  const r1 = await call(first);
+  const r2 = await call(second);
   assert.equal(r1.statusCode, 200);
   assert.equal(r2.statusCode, 200);
   // Stable knowledge fields are identical across warm invocations (ignoring per-request trace/timestamps).
@@ -99,5 +99,5 @@ test('repeated warm-style getService invocations reuse one store and do not corr
   const v2 = JSON.parse(r2.body).envelope.items[0].payload.value.value;
   assert.equal(v1, v2);
   assert.equal(v1, 'place/tx/travis');
-  _reset();
+  await _reset();
 });
