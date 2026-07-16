@@ -12,13 +12,14 @@
  * Methods: POST (canonical JSON body), GET (limited query form), OPTIONS (204).
  * Auth: env KNOWLEDGE_API_INTERNAL_SECRET via 'x-internal-key' or Bearer.
  *
- * Durable storage (ADR-0027): the store is created through the driver factory from
- * KNOWLEDGE_DB_DRIVER / KNOWLEDGE_DB_URL / KNOWLEDGE_DB_AUTH_TOKEN. In production
- * this is a durable remote libSQL/Turso database, so knowledge survives cold starts
- * and deploys. Initialization is async and cached at module scope as a PROMISE, so
- * concurrent cold-start invocations share one store. Initialization failure fails
- * closed with a safe 500 (no filesystem paths, no credentials, no stack traces) and
- * NEVER falls back to an in-memory fixture in production.
+ * Durable storage (ADR-0027, revised): the store is created through the driver
+ * factory from KNOWLEDGE_DB_DRIVER. In production this is the EMG Loop provider
+ * (KNOWLEDGE_DB_DRIVER=loop, EMG_LOOP_API_BASE_URL + EMG_LOOP_SERVICE_TOKEN); Loop is
+ * the durable system of record (it persists through Neon), so knowledge survives cold
+ * starts and deploys. PetsInMyCity never connects to Neon. Initialization is async and
+ * cached at module scope as a PROMISE, so concurrent cold-start invocations share one
+ * store. Initialization failure fails closed with a safe 500 (no urls, no credentials,
+ * no stack traces) and NEVER falls back to an in-memory fixture in production.
  */
 
 const { handle } = require('../../services/knowledge/src/api/http-handler');
@@ -33,7 +34,7 @@ exports.handler = async (event) => {
     // getService() returns a cached initialization promise (warm reuse).
     service = (await getService()).service;
   } catch (err) {
-    // Fail closed: no filesystem paths, no stack traces, no credentials, no internals.
+    // Fail closed: no urls, no stack traces, no credentials, no internals.
     diag.emit({ endpoint: '/.netlify/functions/knowledge', outcome: 'init_failure', status: 500 });
     return {
       statusCode: 500,
