@@ -1,18 +1,21 @@
 'use strict';
 /**
- * KnowledgeStore — the storage abstraction layer for the Knowledge Graph.
+ * KnowledgeStore — the SQL-backed storage abstraction for the Knowledge Graph.
  *
- * This is the single seam every service builds on. It exposes the four repositories
- * (entities, claims, relationships, sources) over one configured storage driver, and
- * hides the concrete backend. Per ADR-0026 the backend is swappable; per ADR-0027 the
- * store, repositories and transactions are ASYNC so a durable remote driver (libSQL /
- * Turso) can sit behind the same interface as local SQLite. Consumers never learn
- * which driver is active.
+ * This is the local/test store: it exposes the four repositories (entities, claims,
+ * relationships, sources) over one configured SQL driver (SQLite), hides the
+ * concrete backend, and provides an async transaction(). Per ADR-0027 the store,
+ * repositories and transactions are ASYNC.
  *
- * Data access is: consumers -> delivery service -> KnowledgeStore repos -> driver.
+ * PRODUCTION NOTE (ADR-0027, revised): production durable storage is NOT this
+ * class. It is LoopKnowledgeStore, which speaks to EMG Loop (the system of record;
+ * Loop persists through Neon). Both stores implement the same public surface so the
+ * delivery service and importer are identical across them. The driver factory
+ * (createKnowledgeStore) decides which one is built. SQLite is retained ONLY for
+ * isolated local development and automated tests.
+ *
+ * Data access is: consumers -> delivery service -> store repos -> driver / Loop.
  */
-const { createDriver } = require('./storage/create-store');
-const { runMigrations } = require('./storage/migrate');
 const EntityRepository = require('./repositories/EntityRepository');
 const ClaimRepository = require('./repositories/ClaimRepository');
 const RelationshipRepository = require('./repositories/RelationshipRepository');
@@ -29,7 +32,7 @@ function buildRepos(executor) {
 }
 
 class KnowledgeStore {
-  /** @param {object} driver an open, migrated storage driver */
+  /** @param {object} driver an open, migrated SQL storage driver */
   constructor(driver) {
     this.driver = driver;
     const repos = buildRepos(driver);
@@ -40,22 +43,25 @@ class KnowledgeStore {
   }
 
   /**
-   * Create and migrate a store from a storage configuration.
-   * @param {object} [config] { driver, url, authToken, filename } (falls back to env)
+   * Create a store from a storage configuration. Delegates to the driver factory,
+   * so a 'loop' configuration returns a LoopKnowledgeStore and a 'sqlite'
+   * configuration returns a migrated SQL-backed KnowledgeStore. Callers above the
+   * store boundary never learn which backend is active.
+   * @param {object} [config] { driver, filename, baseUrl, serviceToken, ... }
    * @param {object} [env] optional env override (tests)
-   * @returns {Promise<KnowledgeStore>}
+   * @returns {Promise<object>} a store implementing the KnowledgeStore surface
    */
   static async create(config, env) {
-    const driver = await createDriver(config, env);
-    await runMigrations(driver);
-    return new KnowledgeStore(driver);
+    // Lazy require avoids a module cycle (create-store requires this file).
+    const { createKnowledgeStore } = require('./storage/create-store');
+    return createKnowledgeStore(config, env);
   }
 
   /**
    * Backwards-compatible open(). Accepts a sqlite filename string (':memory:' or a
    * path) OR a full config object. Kept so existing local/test callers keep working.
    * @param {string|object} [fileOrConfig]
-   * @returns {Promise<KnowledgeStore>}
+   * @returns {Promise<object>}
    */
   static async open(fileOrConfig) {
     if (fileOrConfig == null) return KnowledgeStore.create();
@@ -93,6 +99,16 @@ class KnowledgeStore {
       this.relationships.count(),
     ]);
     return { sources, entities, claims, edges };
+  }
+
+  /**
+   * Readiness for the SQL store: schema migrations applied. (LoopKnowledgeStore has
+   * its own readiness() that checks Loop reachability + contract version.)
+   */
+  async readiness() {
+    const { schemaStatus } = require('./storage/migrate');
+    const status = await schemaStatus(this.driver);
+    return { reachable: true, migrated: status.ready, contractVersion: 'sqlite', expected: 'sqlite' };
   }
 
   async close() { await this.driver.close(); }
