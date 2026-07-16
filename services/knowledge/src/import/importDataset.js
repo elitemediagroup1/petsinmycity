@@ -55,6 +55,7 @@ function linkSources(store, kind, ownerId, sources) {
 // which better-sqlite3 cannot bind; convert them to ISO date strings.
 function normalizeDates(value) {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'boolean') return value ? 1 : 0; // SQLite cannot bind booleans
   if (Array.isArray(value)) return value.map(normalizeDates);
   if (value && typeof value === 'object') {
     const out = {};
