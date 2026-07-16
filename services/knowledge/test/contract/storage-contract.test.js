@@ -1,36 +1,23 @@
 'use strict';
 
 /**
- * Shared storage contract test (ADR-0027).
+ * Shared SQL storage contract test (ADR-0027, revised).
  *
- * The SAME behavioural suite runs against every supported storage driver, proving
- * identical observable behaviour regardless of backend:
- *   - SQLite  (better-sqlite3, local/test)
- *   - libSQL  (@libsql/client) in a secret-free local FILE mode. A local 'file:' url
- *     is used (not ':memory:') so the client's interactive transactions share the
- *     same database as migrations; libSQL ':memory:' gives each connection its own
- *     database, which the transaction contract test would not tolerate. This still
- *     needs no credentials. A full remote Turso integration test is separate/optional.
+ * This suite proves the SQL-backed KnowledgeStore behaves correctly and is exercised
+ * against SQLite (better-sqlite3), the ONLY SQL backend, used for local development
+ * and automated tests. Production durable storage is EMG Loop via LoopKnowledgeStore,
+ * which is NOT a SQL driver and is covered by test/contract/loop-provider.test.js.
+ *
+ * (The former libSQL/Turso variant was removed: PetsInMyCity no longer owns a durable
+ * remote SQL database.)
  */
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
 const KnowledgeStore = require('../../src/KnowledgeStore');
-
-// Is the libSQL client importable in this environment? (Declared dep; guard anyway.)
-let libsqlAvailable = true;
-try { require.resolve('@libsql/client'); } catch (e) { libsqlAvailable = false; }
-
-// A unique local file for the libSQL driver so migrations + transactions share state.
-const libsqlDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kg-libsql-'));
-const libsqlFile = 'file:' + path.join(libsqlDir, 'contract.db');
 
 const DRIVERS = [
   { name: 'sqlite', config: { driver: 'sqlite', filename: ':memory:' }, enabled: true },
-  { name: 'libsql', config: { driver: 'libsql', url: libsqlFile }, enabled: libsqlAvailable },
 ];
 
 const T1 = { id: 's-gov', tier: 1, kind: 'government', url: 'https://example.gov/a', accessed: '2025-01-02' };
@@ -42,8 +29,6 @@ function defineContract(name, config, enabled) {
 
   test('[' + name + '] opens empty and migrates schema', opts, async () => {
     const s = await store();
-    // libSQL file persists across create() calls in this suite; assert schema exists
-    // by confirming the four repositories are queryable rather than asserting zero.
     const stats = await s.stats();
     assert.equal(typeof stats.entities, 'number');
     assert.equal(typeof stats.claims, 'number');
