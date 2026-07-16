@@ -13,7 +13,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-const { KnowledgeStore } = require('../../src/KnowledgeStore');
+const KnowledgeStore = require('../../src/KnowledgeStore');
 const { importDirectory } = require('../../src/import/importDataset');
 const { KnowledgeDeliveryService, ResultState } = require('../../src/delivery');
 
