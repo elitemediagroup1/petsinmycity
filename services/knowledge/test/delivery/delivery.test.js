@@ -11,7 +11,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { KnowledgeStore } = require('../../src/KnowledgeStore');
+const KnowledgeStore = require('../../src/KnowledgeStore');
 const {
   KnowledgeDeliveryService, ResultState, ReasonCode, FreshnessStatus,
   InvalidRequestError,
