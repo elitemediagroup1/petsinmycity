@@ -1,26 +1,28 @@
 'use strict';
 
 /**
- * Storage + delivery bootstrap for the Knowledge API (ADR-0027: async, durable-ready).
+ * Storage + delivery bootstrap for the Knowledge API (ADR-0027, revised: async,
+ * Loop-backed durable production).
  *
  * Data access flows strictly:
- *   Netlify Function -> KnowledgeDeliveryService -> KnowledgeStore -> driver.
+ *   Netlify Function -> KnowledgeDeliveryService -> KnowledgeStore -> driver / Loop.
  *
- * The API never touches SQLite directly and never imports a vendor client as a
- * second data path. It builds a KnowledgeStore via the driver factory and wraps it
- * in the delivery service. The store is READ-ONLY at delivery time.
+ * The API never touches SQLite directly, never touches Neon, and never imports a
+ * vendor client as a second data path. It builds a store via the driver factory and
+ * wraps it in the delivery service. The store is READ-ONLY at delivery time; the KDP
+ * remains the sole authority for admission/freshness/ranking/conflict/safety.
  *
  * Two operating modes (chosen by configuration, never inferred unsafely):
- *   - Local / test  (default): driver 'sqlite', an in-memory store (':memory:')
+ *   - Local / test (default): driver 'sqlite', an in-memory store (':memory:')
  *     loaded from the packaged Austin YAML. Ephemeral and rebuildable.
- *   - Durable       (KNOWLEDGE_DB_DRIVER=libsql, or an explicit config): a remote
- *     libSQL/Turso database. Data is already durable, so this path does NOT
- *     auto-import Austin (imports are an explicit admin step) and does NOT fall back
- *     to ephemeral storage.
+ *   - Durable production (KNOWLEDGE_DB_DRIVER=loop): a LoopKnowledgeStore talking to
+ *     EMG Loop (the system of record; Loop persists through Neon). Data is already
+ *     durable in Loop, so this path does NOT auto-import Austin (import is an explicit
+ *     admin step) and does NOT fall back to ephemeral storage.
  *
- * Fail-closed: if a durable driver is configured but its configuration is invalid
- * (missing url/token) initialization throws a safe error. Production never silently
- * falls back to an in-memory Austin fixture.
+ * Fail-closed: if the durable driver is configured but its configuration is invalid
+ * (missing Loop base url / service token) initialization throws a safe error.
+ * Production never silently falls back to an in-memory Austin fixture.
  *
  * Serverless reuse: getService() caches an initialization PROMISE at module scope so
  * concurrent cold-start invocations share one store rather than building several.
@@ -44,7 +46,7 @@ let _cachedPromise = null;
  */
 function isExplicitlyConfigured(explicit, env) {
   if (explicit) return true;
-  return !!(env.KNOWLEDGE_DB_DRIVER || env.KNOWLEDGE_DB_URL || env.KNOWLEDGE_DB_FILE);
+  return !!(env.KNOWLEDGE_DB_DRIVER || env.EMG_LOOP_API_BASE_URL || env.KNOWLEDGE_DB_FILE);
 }
 
 /**
@@ -62,13 +64,16 @@ async function build(opts) {
   const ephemeral = !isExplicitlyConfigured(explicit, env);
 
   // Ephemeral local/test default: an isolated in-memory sqlite store, seeded from
-  // packaged YAML. Otherwise resolve the configured (possibly durable) backend.
+  // packaged YAML. Otherwise resolve the configured (possibly durable Loop) backend.
   const cfg = ephemeral
     ? { driver: 'sqlite', filename: ':memory:' }
     : resolveConfig(explicit, env);
 
   const store = await KnowledgeStore.create(cfg, env);
 
+  // Only the ephemeral local/test fixture seeds packaged YAML at boot. Durable Loop
+  // storage is already populated (Austin import is an explicit admin operation), so
+  // we NEVER import at request/boot time in production.
   if (ephemeral) {
     const dataset = options.dataset || env.KNOWLEDGE_DATASET_DIR || DEFAULT_DATASET;
     await importDirectory(store, dataset);
