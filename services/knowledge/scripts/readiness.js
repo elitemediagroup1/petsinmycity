@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 'use strict';
 /**
- * Deployment readiness check (ADR-0027).
+ * Deployment readiness check (ADR-0027, revised).
  *
  * Confirms, WITHOUT exposing secrets, that the configured knowledge store is ready:
  *   1. driver configuration exists and is valid (fail-closed),
- *   2. the database is reachable,
- *   3. required migrations are applied (schema version present),
+ *   2. the backend is reachable,
+ *   3. the backend is at a compatible schema / contract version,
  *   4. Austin data is loaded when the environment expects it (--expect-data).
+ *
+ * Works for both backends via the store's own readiness():
+ *   - sqlite: reachable=true; migrated = schema migrations applied.
+ *   - loop:   reachable = Loop responded ok; migrated = Loop knowledge contract
+ *             version matches the version PetsInMyCity expects.
  *
  * Usage:
  *   node scripts/readiness.js                 # env-configured store
@@ -19,8 +24,7 @@
  * controlled admin/CI command; it is NOT a public health endpoint.
  */
 const KnowledgeStore = require('../src/KnowledgeStore');
-const { createDriver, resolveConfig, StorageConfigError } = require('../src/storage/create-store');
-const { schemaStatus } = require('../src/storage/migrate');
+const { resolveConfig, StorageConfigError } = require('../src/storage/create-store');
 
 function parseArgs(argv) {
   const out = { expectData: false, target: undefined };
@@ -46,25 +50,25 @@ async function check(opts) {
     return report;
   }
 
-  // 2. Reachability + 3. migrations + 4. optional data.
-  let driver;
+  // 2. Reachability + 3. schema/contract version + 4. optional data.
+  let store;
   try {
-    driver = await createDriver(cfg, options.env);
-    report.reachable = true;
-    const status = await schemaStatus(driver);
-    report.migrated = status.ready;
-    report.schema = { expected: status.expected.length, applied: status.applied.length, pending: status.pending };
+    store = await KnowledgeStore.create(cfg, options.env);
+    const r = await store.readiness();
+    report.reachable = !!r.reachable;
+    report.migrated = !!r.migrated;
+    report.contract = { version: r.contractVersion || null, expected: r.expected || null };
     if (options.expectData) {
-      const store = new KnowledgeStore(driver);
       const stats = await store.stats();
       report.stats = stats;
       report.dataLoaded = stats.claims > 0 && stats.entities > 0;
     }
   } catch (err) {
-    report.reachError = 'unreachable_or_error';
+    // Map any failure to a non-secret code. LoopError / config errors carry .code.
+    report.reachError = (err && err.code) ? String(err.code) : 'unreachable_or_error';
     return report;
   } finally {
-    if (driver) { try { await driver.close(); } catch (e) { /* ignore */ } }
+    if (store) { try { await store.close(); } catch (e) { /* ignore */ } }
   }
 
   report.ready = report.config && report.reachable && report.migrated
