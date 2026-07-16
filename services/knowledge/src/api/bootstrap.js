@@ -11,11 +11,12 @@
  * in the delivery service. The store is READ-ONLY at delivery time.
  *
  * Two operating modes (chosen by configuration, never inferred unsafely):
- *   - Local / test  (default): driver 'sqlite', an in-memory store loaded from the
- *     packaged Austin YAML. Ephemeral and rebuildable — correct for tests and dev.
- *   - Durable       (KNOWLEDGE_DB_DRIVER=libsql): a remote libSQL/Turso database.
- *     Data is already durable, so this path does NOT auto-import Austin (imports are
- *     an explicit admin step) and does NOT fall back to ephemeral storage.
+ *   - Local / test  (default): driver 'sqlite', an in-memory store (':memory:')
+ *     loaded from the packaged Austin YAML. Ephemeral and rebuildable.
+ *   - Durable       (KNOWLEDGE_DB_DRIVER=libsql, or an explicit config): a remote
+ *     libSQL/Turso database. Data is already durable, so this path does NOT
+ *     auto-import Austin (imports are an explicit admin step) and does NOT fall back
+ *     to ephemeral storage.
  *
  * Fail-closed: if a durable driver is configured but its configuration is invalid
  * (missing url/token) initialization throws a safe error. Production never silently
@@ -37,28 +38,38 @@ const DEFAULT_DATASET = path.resolve(__dirname, '../../../../research/austin/pil
 let _cachedPromise = null;
 
 /**
+ * Does the environment/config explicitly select a storage backend? When nothing is
+ * explicitly configured we use an ephemeral in-memory sqlite fixture (local/test);
+ * this is the ONLY mode that auto-seeds from packaged YAML.
+ */
+function isExplicitlyConfigured(explicit, env) {
+  if (explicit) return true;
+  return !!(env.KNOWLEDGE_DB_DRIVER || env.KNOWLEDGE_DB_URL || env.KNOWLEDGE_DB_FILE);
+}
+
+/**
  * Build a fresh delivery service backed by a configured store.
- * For the in-memory local/test driver, loads the Austin dataset. For a durable
- * driver, assumes data is already present (no auto-import).
- * @param {object} [opts] { dataset, config, now, diagnosticsSink, env }
+ * @param {object} [opts] { dataset, config, dbFile, now, diagnosticsSink, env }
  * @returns {Promise<{ service, store, stats }>}
  */
 async function build(opts) {
   const options = opts || {};
   const env = options.env || process.env;
-  // Resolve config (fails closed on invalid durable configuration).
+
   const explicit = options.config
     || (options.dbFile ? { driver: 'sqlite', filename: options.dbFile } : null);
-  const cfg = resolveConfig(explicit, env);
 
-  // Local/test in-memory sqlite is the only mode that auto-seeds from packaged YAML.
-  const isEphemeralMemory = cfg.driver === 'sqlite'
-    && (!cfg.filename || cfg.filename === ':memory:')
-    && (explicit ? true : (!env.KNOWLEDGE_DB_DRIVER));
+  const ephemeral = !isExplicitlyConfigured(explicit, env);
+
+  // Ephemeral local/test default: an isolated in-memory sqlite store, seeded from
+  // packaged YAML. Otherwise resolve the configured (possibly durable) backend.
+  const cfg = ephemeral
+    ? { driver: 'sqlite', filename: ':memory:' }
+    : resolveConfig(explicit, env);
 
   const store = await KnowledgeStore.create(cfg, env);
 
-  if (isEphemeralMemory) {
+  if (ephemeral) {
     const dataset = options.dataset || env.KNOWLEDGE_DATASET_DIR || DEFAULT_DATASET;
     await importDirectory(store, dataset);
   }
@@ -74,8 +85,8 @@ async function build(opts) {
 /**
  * Get a cached delivery service for serverless reuse. Initialization is cached as a
  * promise so repeated warm invocations reuse one store; a failed initialization
- * clears the cache so a later invocation can retry (rather than caching a broken
- * state forever).
+ * clears the cache so a later invocation can retry rather than caching a broken
+ * state forever.
  * @param {object} [opts]
  * @returns {Promise<{ service, store, stats }>}
  */
