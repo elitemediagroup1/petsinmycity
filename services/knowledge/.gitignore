@@ -4,5 +4,10 @@ data/
 *.db-wal
 *.db-shm
 
+# Environment / credentials (NEVER commit real secrets; .env.example is the template)
+.env
+.env.*
+!.env.example
+
 # Dependencies
 node_modules/
