@@ -30,10 +30,10 @@ function traceOf(result) {
   return null;
 }
 
-/** A resolved delivery result is an envelope: it has items but no ResultState. */
+/** A resolved delivery result is the kdp.v1 envelope (its state === 'resolved'). */
 function isEnvelope(result) {
-  return !!result && result.state === undefined && result.contract_version === 'kdp.v1'
-    && Array.isArray(result.items);
+  return !!result && result.state === ResultState.RESOLVED
+    && result.contract_version === 'kdp.v1' && Array.isArray(result.items);
 }
 
 function jsonResponse(statusCode, payload, extraHeaders) {
