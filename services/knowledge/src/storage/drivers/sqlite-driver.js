@@ -9,18 +9,16 @@
  * NOT durable on Netlify's ephemeral filesystem.
  *
  * better-sqlite3 is required LAZILY (inside open()) so that deployed libSQL-only
- * runtimes never load the native binary, and so a missing optional native module
- * does not break importing this file.
+ * runtimes never load the native binary.
  *
  * Driver contract (shared with libsql-driver.js):
  *   await driver.execute({ sql, args })  -> { rows, rowsAffected, lastInsertRowid }
- *   await driver.batch(statements)       -> ResultSet[]        (atomic: all or nothing)
+ *   await driver.batch(statements)       -> ResultSet[]        (atomic)
  *   await driver.transaction()           -> { execute, commit, rollback }  (interactive)
  *   await driver.exec(sqlText)           -> void               (multi-statement DDL)
  *   await driver.close()                 -> void
  *
  * Bindings: named object args use SQLite '@name' placeholders (parity with libSQL).
- * Positional args use an array with '?' placeholders.
  */
 
 const path = require('path');
@@ -28,17 +26,12 @@ const fs = require('fs');
 
 /** Normalise a better-sqlite3 statement result into the shared ResultSet shape. */
 function toResultSet(stmt, args) {
-  // A statement is a reader iff it returns data (SELECT / RETURNING).
   if (stmt.reader) {
     const rows = args === undefined ? stmt.all() : stmt.all(args);
     return { rows, rowsAffected: 0, lastInsertRowid: undefined };
   }
   const info = args === undefined ? stmt.run() : stmt.run(args);
-  return {
-    rows: [],
-    rowsAffected: info.changes,
-    lastInsertRowid: info.lastInsertRowid,
-  };
+  return { rows: [], rowsAffected: info.changes, lastInsertRowid: info.lastInsertRowid };
 }
 
 class SqliteDriver {
@@ -54,26 +47,27 @@ class SqliteDriver {
    */
   static async open(opts) {
     const options = opts || {};
-    // Lazy require: keeps the native module out of the deployed libSQL path.
+    // Lazy require keeps the native module out of the deployed libSQL path.
     // eslint-disable-next-line global-require
     const Database = require('better-sqlite3');
-    const target = options.filename
-      || process.env.KG_DB_PATH
+    let target = options.filename || process.env.KG_DB_PATH
       || path.join(__dirname, '..', '..', '..', 'data', 'knowledge.db');
-    if (target !== ':memory:' && !String(target).startsWith('file:')) {
+    // Accept a libsql-style 'file:' url for parity; strip the scheme for better-sqlite3.
+    if (typeof target === 'string' && target.startsWith('file:')) target = target.slice('file:'.length);
+    if (target !== ':memory:') {
       fs.mkdirSync(path.dirname(target), { recursive: true });
     }
-    const db = new Database(target === 'file::memory:' ? ':memory:' : target);
-    db.pragma('journal_mode = WAL');
+    const db = new Database(target);
+    // NOTE: no WAL. WAL is unsupported for ':memory:' and, combined with the manual
+    // transaction below, can surface SQLITE_BUSY; the default rollback journal is
+    // correct for this single-connection driver. Foreign keys stay enforced.
     db.pragma('foreign_keys = ON');
     return new SqliteDriver(db);
   }
 
-  /** Run one parameterised statement. */
   async execute(statement) {
     const { sql, args } = normalise(statement);
-    const stmt = this.db.prepare(sql);
-    return toResultSet(stmt, args);
+    return toResultSet(this.db.prepare(sql), args);
   }
 
   /** Atomic batch: all statements commit together or none do. */
@@ -90,20 +84,21 @@ class SqliteDriver {
   }
 
   /**
-   * Interactive transaction. better-sqlite3 has no async tx object, so we emulate
-   * one with explicit BEGIN/COMMIT/ROLLBACK. Safe because everything is synchronous.
+   * Interactive transaction. better-sqlite3 is synchronous, so we drive an explicit
+   * transaction with prepared BEGIN/COMMIT/ROLLBACK statements (more robust than
+   * exec of raw SQL). Guards against double commit/rollback.
    */
   async transaction() {
-    this.db.exec('BEGIN');
-    let open = true;
     const self = this;
+    self.db.prepare('BEGIN').run();
+    let open = true;
     return {
       async execute(statement) {
         const { sql, args } = normalise(statement);
         return toResultSet(self.db.prepare(sql), args);
       },
-      async commit() { if (open) { self.db.exec('COMMIT'); open = false; } },
-      async rollback() { if (open) { self.db.exec('ROLLBACK'); open = false; } },
+      async commit() { if (open) { open = false; self.db.prepare('COMMIT').run(); } },
+      async rollback() { if (open) { open = false; self.db.prepare('ROLLBACK').run(); } },
     };
   }
 
