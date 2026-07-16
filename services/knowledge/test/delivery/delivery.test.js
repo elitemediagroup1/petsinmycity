@@ -24,8 +24,15 @@ function freshStore() { return KnowledgeStore.open(':memory:'); }
 const DAY = 24 * 60 * 60 * 1000;
 function iso(ms) { return new Date(ms).toISOString(); }
 
+// Ensure a subject entity exists (claims.subject has a FK to entities.id).
+// upsert is idempotent, so this is safe to call repeatedly per fresh store.
+function ensureEntity(store, id) {
+  store.entities.upsert({ id: id, type: 'place', name: id });
+}
+
 // Insert a claim + a linked source in one call. Returns claim id.
 function seedClaim(store, claim, source) {
+  ensureEntity(store, claim.subject);
   if (source) store.sources.upsert(source);
   store.claims.upsert(claim);
   if (source) store.claims.addSource(claim.id, source.id);
@@ -278,6 +285,7 @@ test('linked sources are returned in provenance', () => {
 test('missing required provenance blocks delivery', () => {
   const store = freshStore();
   // verified but NO linked source.
+  ensureEntity(store, 'sub');
   store.claims.upsert({ id: 'c1', subject: 'sub', predicate: 'p', value: 'x', verification: 'verified', confidence: 90 });
   const r = svc(store).getKnowledge({ subjectId: 'sub', predicate: 'p' });
   assert.equal(r.state, ResultState.INADMISSIBLE);
@@ -287,6 +295,7 @@ test('missing required provenance blocks delivery', () => {
 
 test('multiple sources are preserved for one claim', () => {
   const store = freshStore();
+  ensureEntity(store, 'sub');
   store.sources.upsert(T1);
   store.sources.upsert(T2);
   store.claims.upsert({ id: 'c1', subject: 'sub', predicate: 'p', value: 'x', verification: 'verified', confidence: 90 });
@@ -301,6 +310,7 @@ test('multiple sources are preserved for one claim', () => {
 
 test('latest admissible claim version is returned after update', () => {
   const store = freshStore();
+  ensureEntity(store, 'sub');
   store.sources.upsert(T1);
   store.claims.upsert({ id: 'c1', subject: 'sub', predicate: 'p', value: 'v1', verification: 'verified', confidence: 90 });
   store.claims.addSource('c1', T1.id);
