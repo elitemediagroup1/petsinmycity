@@ -8,6 +8,10 @@
  * active. This driver is for local development and automated tests only — it is
  * NOT durable on Netlify's ephemeral filesystem.
  *
+ * better-sqlite3 is required LAZILY (inside open()) so that deployed libSQL-only
+ * runtimes never load the native binary, and so a missing optional native module
+ * does not break importing this file.
+ *
  * Driver contract (shared with libsql-driver.js):
  *   await driver.execute({ sql, args })  -> { rows, rowsAffected, lastInsertRowid }
  *   await driver.batch(statements)       -> ResultSet[]        (atomic: all or nothing)
@@ -21,7 +25,6 @@
 
 const path = require('path');
 const fs = require('fs');
-const Database = require('better-sqlite3');
 
 /** Normalise a better-sqlite3 statement result into the shared ResultSet shape. */
 function toResultSet(stmt, args) {
@@ -51,6 +54,9 @@ class SqliteDriver {
    */
   static async open(opts) {
     const options = opts || {};
+    // Lazy require: keeps the native module out of the deployed libSQL path.
+    // eslint-disable-next-line global-require
+    const Database = require('better-sqlite3');
     const target = options.filename
       || process.env.KG_DB_PATH
       || path.join(__dirname, '..', '..', '..', 'data', 'knowledge.db');
