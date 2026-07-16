@@ -58,11 +58,10 @@ test('never puts the service token in the URL', async () => {
 });
 
 test('normalizes Loop claims + sources into KDP row shape', async () => {
-  const fetchImpl = mockFetch(() => ({ body: { ok: true, claims: [
-    { id: 'c1', subject: 's', predicate: 'p', value: { n: 1 }, confidence: 'high',
-      verification: 'verified', safety_critical: true, valid_from: '2025-01-01',
-      sources: [{ id: 'src1', tier: 1, kind: 'government', url: 'https://x' }] },
-  ] }) });
+  const claim = { id: 'c1', subject: 's', predicate: 'p', value: { n: 1 }, confidence: 'high',
+    verification: 'verified', safety_critical: true, valid_from: '2025-01-01',
+    sources: [{ id: 'src1', tier: 1, kind: 'government', url: 'https://x' }] };
+  const fetchImpl = mockFetch(() => ({ body: { ok: true, claims: [claim] } }));
   const store = makeStore(fetchImpl);
   const rows = await store.claims.findBySubject('s', 'p');
   assert.equal(rows.length, 1);
