@@ -2,42 +2,55 @@
 
 ---
 
-## ADR-0027 — Durable serverless storage: make the knowledge layer asynchronous and add a libSQL/Turso driver
+## ADR-0027 — Async knowledge layer + EMG Loop as the production durable-storage provider
 
-**Status:** Accepted (implementation amendment under frozen Architecture v1.0; approved on a proven blocker).
+**Status:** Accepted (implementation amendment under frozen Architecture v1.0). Supersedes the interim Turso/libSQL decision previously recorded under this number.
 
-**Context / production runtime problem.** ADR-0026 abstracted storage behind the KnowledgeStore repository interface, and the first concrete backend was SQLite via `better-sqlite3` (synchronous, file-based). On Netlify Functions the filesystem is ephemeral and effectively read-only at runtime, so the deployed API had to build a throwaway in-memory store from packaged Austin YAML on every cold start. That is not durable production storage: it cannot accept verified updates, it is rebuilt on every deploy and cold start, and it ties the deployed runtime to the native `better-sqlite3` binary. Durable serverless storage requires a *remote* database.
+### Context
 
-**The blocker.** Every genuinely durable remote serverless database exposes an **asynchronous** client (network I/O), while the existing repositories were **synchronous** (`db.prepare(sql).get()`, `db.transaction(fn)()`). There is no correct way to expose remote async I/O behind a synchronous method: blocking wrappers, child processes, busy-waiting, `deasync`, and fake synchronous adapters are fragile and serverless-inappropriate. Embedded replicas were also rejected: they require asynchronous initialization and sync, rely on a local filesystem replica, and are the wrong durable foundation for disposable Function instances.
+ADR-0026 abstracted storage behind the KnowledgeStore repository interface; the first concrete backend was synchronous SQLite via `better-sqlite3`. On Netlify Functions the filesystem is ephemeral, so the deployed API rebuilt a throwaway in-memory store from packaged Austin YAML on every cold start — not durable production storage.
 
-**Decision.** Make all knowledge-layer repository, store, importer, migration, readiness, delivery, and API-handler interfaces **promise-based**, and add a durable remote KnowledgeStore driver built on **`@libsql/client`** (libSQL / Turso). SQLite is retained for local development and tests by adapting the existing repositories to the same asynchronous contract (the SQLite work completes immediately but is awaited for interface parity). A single `createKnowledgeStore()` factory selects the driver from configuration and fails closed in production.
+An initial amendment made the whole knowledge layer asynchronous (correct, and retained) and selected a PetsInMyCity-owned Turso/libSQL database as the durable backend. That storage-ownership decision was locally reasonable but **incomplete**: it did not account for **EMG Loop**, the shared operating and persistence platform for all InMyCity properties. Loop — not each individual property — owns the durable data relationship (Loop persists through Neon). A PetsInMyCity-owned Turso database would be a competing, siloed system of record.
 
-**Why `@libsql/client` / libSQL.** It is the smallest durable backend that preserves the existing contracts: libSQL is a SQLite fork, so the existing SQL dialect ports without a rewrite (`strftime`, `INSERT OR REPLACE`/`INSERT OR IGNORE`, `ON CONFLICT DO UPDATE`, `AUTOINCREMENT`, and named `@param` bindings are all supported); it offers a secret-free local mode (`:memory:` and `file:`) for CI plus durable remote access (`libsql://` + auth token) for Netlify; it has zero native-binary requirement in the deployed path; it exposes interactive transactions and atomic write batches sufficient for the repositories' append-only versioning; and it is the production-ready, battle-tested client (per official Turso documentation). Vendor-specific code is confined to one driver module behind KnowledgeStore.
+A Loop audit (emgloop-platform, at the time of writing) confirmed: a multi-tenant PostgreSQL/Prisma core scoped by `organizationId`; a versioned `/api/v1/` HTTP surface; a live **Loop Event Gateway** (`POST /api/v1/events`) that already ingests events from InMyCity producer sites using an `x-emg-loop-secret` shared-secret header and a producer-supplied `eventId` for idempotency; a domain event bus; and audit models. It also confirmed Loop has **no verified knowledge-graph service yet** (its planned `KnowledgeSource`/`KnowledgeChunk` models are an embedding-backed RAG document store, a different concept from PetsInMyCity's verified entity/claim/relationship graph). Loop is therefore the correct production system of record, but the specific knowledge endpoints must still be built on the Loop side.
 
-**Why SQLite remains for local/test.** Zero configuration, no credentials, deterministic and fast in CI, and — because libSQL shares SQLite's dialect — the same SQL and migrations exercise both drivers. Removing it would make ordinary CI depend on production secrets, which is disallowed.
+### Decision
 
-**Stable external behavior (unchanged).** The Knowledge Graph and Machine Schema, the `getKnowledge()` request shape, the canonical `kdp.v1` delivery envelope, the typed delivery result states, the Internal Knowledge API request/HTTP-response contract, and all admission, freshness, provenance, ranking, conflict, and safety behavior are unchanged. Only the internal execution model changes from synchronous to asynchronous.
+- **Retain** the fully asynchronous knowledge interfaces (store, repositories, transactions, importer, migrations, readiness, delivery service, API handler). Remote Loop communication is asynchronous, so the async migration remains correct and is kept.
+- **Retain** SQLite (`better-sqlite3`) for isolated local development and automated tests only. It is an optional dependency and never ships in the deployed serverless path.
+- **Use EMG Loop as the production durable-storage provider**, reached through a new `LoopKnowledgeStore` that implements the existing KnowledgeStore surface over an authenticated Loop HTTP client (`x-emg-loop-secret`, `/api/v1/knowledge/*`). Loop persists through Neon internally.
+- **Prohibit** direct PetsInMyCity access to Neon (no connection strings, table names, or Prisma models leak into this repository). The boundary is the Loop service contract.
+- **Keep the KDP (KnowledgeDeliveryService) as the sole delivery-policy authority.** Loop returns stored knowledge objects; PetsInMyCity's KDP alone enforces admission, freshness, ranking, conflict, provenance and safety-floor, and assembles the `kdp.v1` envelope. Delivery policy is NOT moved into Loop in this phase.
+- **Fail closed.** A `loop` driver with missing base url or service token is rejected at config time; production never silently falls back to SQLite or an in-memory fixture.
 
-**Rejected alternatives.**
-- *Managed PostgreSQL.* Durable and mature, but forces a SQL-dialect and binding rewrite (`strftime`→`to_char`, SQLite upserts→Postgres `ON CONFLICT`, `AUTOINCREMENT`→`SERIAL`/identity, `@name`→`\$1` positional), i.e. two independently evolving schemas — the opposite of the requirement to reuse one schema. Deferred; see trigger conditions below.
-- *`@tursodatabase/serverless`.* Promising fetch-only client, but newer and with a different prepare/statement API surface; `@libsql/client` is the battle-tested standard with the closest binding parity. Revisit later.
-- *Blocking a remote client behind a fake synchronous interface.* Fragile, serverless-inappropriate. Rejected.
-- *Embedded replica solely to preserve synchronous calls.* Still async to init/sync; wrong fit for disposable Functions. Rejected.
-- *Parallel synchronous and asynchronous service layers.* Doubles the trusted read path and invites drift. Rejected.
-- *Deferring durable storage and keeping runtime YAML/in-memory.* Not durable; fails the mission. Rejected.
+### Stable external behavior (unchanged)
 
-**Migration impact.** All internal callers use `await`. The delivery service and API handler become `async`; the Netlify function awaits a module-scoped initialization promise (warm reuse) and awaits the handler. Tests are updated to await the interfaces. No consumer above the KnowledgeStore boundary learns which driver is active.
+The Knowledge Graph and Machine Schema, the `getKnowledge()` request shape, the canonical `kdp.v1` delivery envelope, the typed delivery result states, the Internal Knowledge API request/HTTP-response contract, and all admission, freshness, provenance, ranking, conflict and safety behavior are unchanged. The Austin verified dataset and its factual meaning are unchanged. Only the internal execution model (async) and the production backend (Loop instead of Turso) change.
 
-**Rollback strategy.** Code reverts to the previous release independently. Migrations are versioned and tracked in `schema_migrations`; imports are idempotent; append-only history is preserved; no destructive down-migration is required for ordinary rollback. Drivers can be switched by configuration in non-production environments; production never silently switches to temporary storage. If the durable driver fails after deployment, the API fails closed with a safe typed 500/service-unavailable rather than serving stale or ephemeral data.
+### Rejected alternatives
 
-**Vendor-specific risks.** Turso is a managed vendor (availability, pricing, and account dependency). Risk is bounded because the SQL is standard SQLite dialect and the code is isolated to one driver module; a move to PostgreSQL or another libSQL host is a driver-scoped change.
+- **PetsInMyCity-owned Turso/libSQL** (the interim decision). Rejected: it makes a single property the durable system of record and competes with Loop, the shared persistence platform. Duplicating knowledge in Loop and Turso is explicitly rejected.
+- **Direct Neon access from PetsInMyCity.** Rejected: leaks Loop's internal schema and credentials across a product boundary; breaks tenancy and ownership.
+- **Synchronous remote wrappers / embedded-replica workarounds.** Rejected: fragile and serverless-inappropriate; embedded replicas still require async init/sync and a local filesystem replica.
+- **Parallel synchronous and asynchronous service layers.** Rejected: doubles the trusted read path and invites drift.
+- **Moving KDP delivery policy into Loop now.** Rejected until a shared-KDP-for-all-EMG-properties architecture is deliberately approved; for this phase PetsInMyCity remains the single delivery authority.
+- **Deferring durable storage (runtime YAML/in-memory).** Rejected: not durable.
 
-**Conditions that would trigger a future move to PostgreSQL (or another backend).** Sustained need for high-concurrency writes, relational features beyond SQLite's dialect, multi-region primaries, or provider/cost constraints that libSQL/Turso cannot meet. Such a move would be a new ADR and would remain behind the same KnowledgeStore interface.# PetsInMyCity — Implementation Decisions (ADRs, Phase II)
+### Consequences
+
+- PetsInMyCity PR #12 implements and tests the full provider contract now, against a mocked Loop (no credentials in CI).
+- Production activation depends on a **separate, scoped Loop implementation PR** that adds the `/api/v1/knowledge/*` endpoints and a service-auth path (see docs/implementation/LOOP_KNOWLEDGE_CONTRACT.md).
+- The async work is fully reusable; no duplicate database silo is created.
+- Until Loop implements the contract, the `loop` driver is production-disabled by absence of configuration and fails closed; the integration is NOT production-operational yet, and the documentation says so.
+
+### Migration impact & rollback
+
+All internal callers use `await`; the delivery service and API handler are async; the Netlify function awaits a module-scoped initialization promise (warm reuse) and fails closed on init error. Drivers are switched by configuration; production never silently switches to temporary storage. Rollback is a normal code revert; imports are idempotent (deterministic idempotency key) and append-only history is preserved, so re-running an import after rollback does not double-write.
+# PetsInMyCity — Implementation Decisions (ADRs, Phase II)
 
 > Architecture v1.0 is frozen. Implementation-level decisions are recorded here. Numbering continues the project sequence (…0025 in `delivery/DECISIONS.md`).
 
 ---
-
 ## ADR-0026 — Abstract the storage layer behind the KDP query interface
 
 **Status:** Accepted (implementation decision; does not change frozen architecture).
