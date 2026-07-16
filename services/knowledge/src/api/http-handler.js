@@ -4,11 +4,15 @@
  * Transport-agnostic HTTP handler for the internal Knowledge API.
  *
  * Thin by design. Responsibilities: validate -> authenticate -> normalize ->
- * call KnowledgeDeliveryService.getKnowledge() -> map typed outcome to HTTP ->
+ * await KnowledgeDeliveryService.getKnowledge() -> map typed outcome to HTTP ->
  * return the canonical kdp.v1 envelope -> emit safe diagnostics.
  *
  * It duplicates NO delivery policy. All admission, freshness, ranking, conflict,
  * provenance and safety decisions come from the delivery layer unchanged.
+ *
+ * ADR-0027: getKnowledge() is async (durable remote storage is async I/O), so
+ * handle() is async and awaits the delivery service. The transport contract
+ * (status codes, kdp.v1 envelope, error shapes) is unchanged.
  *
  * The handler accepts a minimal normalized request shape:
  *   { method, headers, body, query }
@@ -56,10 +60,11 @@ function errorBody(code, message, traceId, extra) {
 
 /**
  * Handle one request.
- * @param {object} input  { method, headers, body, query }
- * @param {object} deps   { service, env, diag }  (service from bootstrap.getService)
+ * @param {object} input { method, headers, body, query }
+ * @param {object} deps { service, env, diag } (service from bootstrap.getService)
+ * @returns {Promise<{statusCode, headers, body}>}
  */
-function handle(input, deps) {
+async function handle(input, deps) {
   const started = Date.now();
   const method = (input && input.method ? String(input.method) : 'GET').toUpperCase();
   const headers = (input && input.headers) || {};
@@ -107,10 +112,10 @@ function handle(input, deps) {
   // Diagnostic disclosure only for explicitly authorized internal callers.
   if (diagnostic) request.includeDiagnostics = true;
 
-  // 4. Call the single trusted read path.
+  // 4. Call the single trusted read path (async).
   let result;
   try {
-    result = deps.service.getKnowledge(request);
+    result = await deps.service.getKnowledge(request);
   } catch (err) {
     if (err instanceof DeliveryError) {
       const m = mapErrorCode(err.code);
