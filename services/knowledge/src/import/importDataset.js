@@ -50,8 +50,22 @@ function linkSources(store, kind, ownerId, sources) {
   });
 }
 
+// Deep-normalize a js-yaml result so it only contains SQLite-bindable primitives.
+// Unquoted YAML dates (e.g. `accessed: 2026-07-15`) parse to JS Date objects,
+// which better-sqlite3 cannot bind; convert them to ISO date strings.
+function normalizeDates(value) {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (Array.isArray(value)) return value.map(normalizeDates);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = normalizeDates(value[k]);
+    return out;
+  }
+  return value;
+}
+
 function loadYaml(file) {
-  return yaml.load(fs.readFileSync(file, 'utf8')) || {};
+  return normalizeDates(yaml.load(fs.readFileSync(file, 'utf8')) || {});
 }
 
 /**
