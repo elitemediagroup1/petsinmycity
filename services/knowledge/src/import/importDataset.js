@@ -34,7 +34,17 @@ function linkSources(store, kind, ownerId, sources) {
   sources.forEach((s, i) => {
     const src = (s && typeof s === 'object') ? s : { url: String(s) };
     const id = sourceId(src, i);
-    store.sources.upsert(Object.assign({ id: id }, src));
+    const _sanitize = (o) => {
+      const out = {};
+      for (const k of Object.keys(o)) {
+        const v = o[k];
+        out[k] = (v instanceof Date)
+          ? v.toISOString().slice(0, 10)
+          : (v && typeof v === "object") ? JSON.stringify(v) : v;
+      }
+      return out;
+    };
+    store.sources.upsert(Object.assign({ id: id }, _sanitize(src)));
     if (kind === 'entity') store.entities.addSource(ownerId, id);
     else store.claims.addSource(ownerId, id);
   });
