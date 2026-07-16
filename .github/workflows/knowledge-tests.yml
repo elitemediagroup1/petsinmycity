@@ -1,14 +1,15 @@
 name: knowledge-tests
 
-# CI for the Knowledge service (ADR-0027). Installs deps in services/knowledge and
-# runs storage + shared cross-driver contract + delivery + API + import + migration
-# tests. Fails the PR on any test failure.
+# CI for the Knowledge service (ADR-0027, revised). Installs deps in services/knowledge
+# and runs storage + shared SQL contract + Loop-provider (mocked) + delivery + API +
+# import + migration tests. Fails the PR on any test failure.
 #
-# NO production secrets are required: the durable libSQL driver is exercised in a
-# secret-free in-memory mode via the shared storage contract suite, the API tests
-# supply a temporary internal secret in-process, and all fixtures use in-memory
-# databases that are discarded when the runner exits. An optional credentialed
-# remote Turso smoke test is documented separately and is NOT part of ordinary CI.
+# NO production secrets are required. Production storage is EMG Loop, but the Loop
+# provider is exercised here against a MOCK fetch (test/contract/loop-provider.test.js),
+# the SQL contract suite runs on in-memory SQLite, the API tests supply a temporary
+# internal secret in-process, and all fixtures use in-memory databases discarded when
+# the runner exits. An optional credentialed remote Loop smoke test is documented
+# separately (services/knowledge/STORAGE.md) and is NOT part of ordinary CI.
 
 on:
   push:
