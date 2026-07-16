@@ -8,7 +8,7 @@ const KnowledgeStore = require('../src/KnowledgeStore');
 const { importDirectory } = require('../src/import/importDataset');
 
 /** Write a tiny YAML dataset to a temp dir and import it. */
-test('importDirectory loads entities, claims and edges from yaml', () => {
+test('importDirectory loads entities, claims and edges from yaml', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kg-fixture-'));
   fs.writeFileSync(path.join(dir, 'entities.yaml'),
     'schema_version: 1\n' +
@@ -40,25 +40,25 @@ test('importDirectory loads entities, claims and edges from yaml', () => {
     'edges:\n' +
     '  - {edge: located_in, from: city_austin, to: state_tx}\n');
 
-  const store = KnowledgeStore.open(':memory:');
-  const counts = importDirectory(store, dir);
+  const store = await KnowledgeStore.open(':memory:');
+  const counts = await importDirectory(store, dir);
   assert.equal(counts.entities, 2);
   assert.equal(counts.claims, 1);
   assert.equal(counts.edges, 1);
 
   // retrieval accuracy after import
-  const c = store.claims.getById('c1');
+  const c = await store.claims.getById('c1');
   assert.equal(c.subject, 'city_austin');
   assert.equal(c.safety_critical, true);
-  assert.equal(store.sources.forClaim('c1').length, 1);
-  assert.equal(store.sources.forEntity('city_austin').length, 1);
-  assert.equal(store.relationships.from('city_austin')[0].to_id, 'state_tx');
+  assert.equal((await store.sources.forClaim('c1')).length, 1);
+  assert.equal((await store.sources.forEntity('city_austin')).length, 1);
+  assert.equal((await store.relationships.from('city_austin'))[0].to_id, 'state_tx');
 
   // idempotent re-import: counts of stored rows unchanged
-  importDirectory(store, dir);
-  assert.equal(store.entities.count(), 2);
-  assert.equal(store.relationships.count(), 1);
+  await importDirectory(store, dir);
+  assert.equal(await store.entities.count(), 2);
+  assert.equal(await store.relationships.count(), 1);
 
-  store.close();
+  await store.close();
   fs.rmSync(dir, { recursive: true, force: true });
 });
