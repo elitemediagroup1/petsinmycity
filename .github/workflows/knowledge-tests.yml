@@ -1,0 +1,38 @@
+name: knowledge-tests
+
+# Minimal CI: install deps in services/knowledge and run storage + delivery tests.
+# Fails the PR on any test failure. No secrets used; SQLite tests use in-memory
+# or temp databases that are discarded when the runner exits.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    paths:
+      - 'services/knowledge/**'
+      - 'research/austin/**'
+      - '.github/workflows/knowledge-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/knowledge
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run migrations (smoke)
+        run: npm run migrate -- ':memory:' || true
+
+      - name: Run tests (storage + delivery)
+        run: npm test

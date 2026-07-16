@@ -34,14 +34,39 @@ function linkSources(store, kind, ownerId, sources) {
   sources.forEach((s, i) => {
     const src = (s && typeof s === 'object') ? s : { url: String(s) };
     const id = sourceId(src, i);
-    store.sources.upsert(Object.assign({ id: id }, src));
+    const _sanitize = (o) => {
+      const out = {};
+      for (const k of Object.keys(o)) {
+        const v = o[k];
+        out[k] = (v instanceof Date)
+          ? v.toISOString().slice(0, 10)
+          : (v && typeof v === "object") ? JSON.stringify(v) : v;
+      }
+      return out;
+    };
+    store.sources.upsert(Object.assign({ id: id }, _sanitize(src)));
     if (kind === 'entity') store.entities.addSource(ownerId, id);
     else store.claims.addSource(ownerId, id);
   });
 }
 
+// Deep-normalize a js-yaml result so it only contains SQLite-bindable primitives.
+// Unquoted YAML dates (e.g. `accessed: 2026-07-15`) parse to JS Date objects,
+// which better-sqlite3 cannot bind; convert them to ISO date strings.
+function normalizeDates(value) {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'boolean') return value ? 1 : 0; // SQLite cannot bind booleans
+  if (Array.isArray(value)) return value.map(normalizeDates);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = normalizeDates(value[k]);
+    return out;
+  }
+  return value;
+}
+
 function loadYaml(file) {
-  return yaml.load(fs.readFileSync(file, 'utf8')) || {};
+  return normalizeDates(yaml.load(fs.readFileSync(file, 'utf8')) || {});
 }
 
 /**
