@@ -1,9 +1,14 @@
 name: knowledge-tests
 
-# Minimal CI: install deps in services/knowledge and run storage + delivery + API
-# tests. Fails the PR on any test failure. No secrets are required: the API tests
-# supply a temporary internal secret in-process and use in-memory SQLite fixtures
-# that are discarded when the runner exits.
+# CI for the Knowledge service (ADR-0027). Installs deps in services/knowledge and
+# runs storage + shared cross-driver contract + delivery + API + import + migration
+# tests. Fails the PR on any test failure.
+#
+# NO production secrets are required: the durable libSQL driver is exercised in a
+# secret-free in-memory mode via the shared storage contract suite, the API tests
+# supply a temporary internal secret in-process, and all fixtures use in-memory
+# databases that are discarded when the runner exits. An optional credentialed
+# remote Turso smoke test is documented separately and is NOT part of ordinary CI.
 
 on:
   push:
@@ -33,8 +38,11 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run migrations (smoke)
-        run: npm run migrate -- ':memory:' || true
+      - name: Run migrations (smoke, in-memory sqlite)
+        run: npm run migrate -- ':memory:'
 
-      - name: Run tests (storage + delivery + api)
+      - name: Readiness check (in-memory sqlite, schema only)
+        run: npm run readiness -- ':memory:' || true
+
+      - name: Run tests (storage + contract + delivery + api + import + migration)
         run: npm test
