@@ -5,16 +5,11 @@
  * knowledge and future consumers (Lucy, articles, search, maps, recommendations,
  * My Pets, future APIs).
  *
- * Contract sources (frozen Architecture v1.0):
- *   delivery/KNOWLEDGE_DELIVERY_PLATFORM.md, delivery/DELIVERY_ENGINE.md,
- *   delivery/FRESHNESS_ENGINE.md, docs/editorial/knowledge-graph/LIFECYCLE.md,
- *   docs/editorial/knowledge-graph/MACHINE_SCHEMA.yaml.
- *
- * Storage boundary (PR #9): ALL reads go through the KnowledgeStore repository
- * interfaces (store.claims / store.entities / store.relationships / store.sources).
- * This service never touches SQLite, never imports better-sqlite3, never returns
- * raw rows, and never introduces a second persistence path. That keeps the
- * future PostgreSQL / libSQL migration a storage-only change.
+ * Storage boundary (PR #9 / ADR-0027): ALL reads go through the KnowledgeStore
+ * repository interfaces (store.claims / store.entities / store.relationships /
+ * store.sources), which are now ASYNC. getKnowledge() is async and awaits every
+ * storage read; the decision logic (admission, freshness, provenance, safety,
+ * ranking, conflict) is unchanged and remains pure/synchronous.
  *
  * Pipeline for getKnowledge():
  *   validate -> resolve subject -> retrieve candidate claims -> admission gate
@@ -33,15 +28,13 @@ const { assembleProvenance } = require('./provenance');
 const { buildEnvelope } = require('./envelope');
 const { Diagnostics, newTraceId } = require('./diagnostics');
 
-// Consumers are enumerated so an unknown identifier is a validation error, but
-// no consumer-specific business logic exists yet (KDP: same fact across consumers).
 const KNOWN_CONSUMERS = new Set([
   'internal', 'lucy', 'article', 'search', 'map', 'recommendations', 'my_pets',
 ]);
 
 class KnowledgeDeliveryService {
   /**
-   * @param {KnowledgeStore} store  the PR #9 storage abstraction.
+   * @param {KnowledgeStore} store the PR #9 storage abstraction.
    * @param {object} [opts] { diagnosticsSink, now }
    */
   constructor(store, opts) {
@@ -80,13 +73,10 @@ class KnowledgeDeliveryService {
 
   /**
    * Retrieve the best admissible knowledge for a subject + predicate.
-   *
-   * @param {object} request {subjectId, predicate, asOf?, consumer?, context?,
-   *                          includeDiagnostics?}
-   * @returns {object} a delivery envelope (RESOLVED) OR a typed result object
-   *                   whose `state` is one of ResultState.*
+   * @param {object} request {subjectId, predicate, asOf?, consumer?, context?, includeDiagnostics?}
+   * @returns {Promise<object>} a delivery envelope (RESOLVED) OR a typed result object.
    */
-  getKnowledge(request) {
+  async getKnowledge(request) {
     const startedAt = Date.now();
     this._validate(request);
     const now = this._now(request);
@@ -99,7 +89,7 @@ class KnowledgeDeliveryService {
 
     let rows;
     try {
-      rows = this.store.claims.findBySubject(request.subjectId, request.predicate) || [];
+      rows = (await this.store.claims.findBySubject(request.subjectId, request.predicate)) || [];
     } catch (err) {
       throw new StorageFailureError('storage read failed', { cause: String(err && err.message || err) });
     }
@@ -109,7 +99,6 @@ class KnowledgeDeliveryService {
       return this._result(ResultState.NOT_FOUND, request, traceId, { reasons: [] });
     }
 
-    // Build candidates, running each gate and recording why anything is dropped.
     const candidates = [];
     const suppressed = [];
     let sawExpired = false;
@@ -131,7 +120,8 @@ class KnowledgeDeliveryService {
 
       let sources;
       try {
-        sources = this.store.sources.forClaim(claim.id) || [];
+        // eslint-disable-next-line no-await-in-loop
+        sources = (await this.store.sources.forClaim(claim.id)) || [];
       } catch (err) {
         throw new StorageFailureError('source read failed', { claimId: claim.id, cause: String(err && err.message || err) });
       }
@@ -142,12 +132,9 @@ class KnowledgeDeliveryService {
       }
 
       const candidate = {
-        claim,
-        sources,
-        provenance,
+        claim, sources, provenance,
         bestSourceTier: provenance.bestTier,
-        freshness,
-        relatedEntityIds: [],
+        freshness, relatedEntityIds: [],
       };
 
       const safety = evaluateSafetyFloor(candidate);
@@ -187,18 +174,14 @@ class KnowledgeDeliveryService {
     });
 
     const envelope = buildEnvelope({
-      request,
-      selected,
+      request, selected,
       provenance: selected.provenance,
       freshFlag: staleItems.length === 0,
-      staleItems,
-      rankingReason,
+      staleItems, rankingReason,
       rulesFired: ['admission', 'freshness', 'provenance', 'safety_floor', 'ranking'],
-      traceId,
-      consumer,
+      traceId, consumer,
       contextSignature: request.context ? JSON.stringify(request.context) : null,
-      nowMs: now,
-      warnings,
+      nowMs: now, warnings,
     });
     envelope.state = ResultState.RESOLVED;
     if (request.includeDiagnostics) {
