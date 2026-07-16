@@ -2,7 +2,7 @@
   "name": "@petsinmycity/knowledge",
   "version": "0.2.0",
   "private": true,
-  "description": "Knowledge Graph storage foundation for PetsInMyCity. Durable, serverless-compatible, versioned, provenance-tracked storage implementing the frozen Machine Schema envelope behind an async KnowledgeStore interface (ADR-0027).",
+  "description": "Knowledge Graph storage foundation for PetsInMyCity. Async, provenance-tracked, versioned knowledge behind a KnowledgeStore abstraction (ADR-0027). Production durable storage is EMG Loop (system of record; persists via Neon) through LoopKnowledgeStore; SQLite is retained for local development and tests only. No vendor DB SDK ships in the deployed path.",
   "main": "src/index.js",
   "scripts": {
     "migrate": "node scripts/migrate.js",
@@ -11,7 +11,6 @@
     "test": "node --test test/"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
     "js-yaml": "^4.1.0"
   },
   "optionalDependencies": {
