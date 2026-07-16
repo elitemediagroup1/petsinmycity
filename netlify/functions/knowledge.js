@@ -3,20 +3,22 @@
 /**
  * Internal Knowledge API - thin Netlify Function boundary.
  *
- * This function does NOTHING except adapt the Netlify event/response contract to
- * the transport-agnostic handler in services/knowledge/src/api. All knowledge
- * policy (admission, freshness, ranking, conflict, provenance, safety) lives in the
- * delivery layer (PR #10) and is called through KnowledgeDeliveryService only.
+ * Adapts the Netlify event/response contract to the transport-agnostic handler in
+ * services/knowledge/src/api. All knowledge policy (admission, freshness, ranking,
+ * conflict, provenance, safety) lives in the delivery layer and is called through
+ * KnowledgeDeliveryService only.
  *
- * Route: /.netlify/functions/knowledge  (internal; not a public developer API).
+ * Route: /.netlify/functions/knowledge (internal; not a public developer API).
  * Methods: POST (canonical JSON body), GET (limited query form), OPTIONS (204).
  * Auth: env KNOWLEDGE_API_INTERNAL_SECRET via 'x-internal-key' or Bearer.
  *
- * Deployment note: the store is an in-memory read-only Austin fixture built from
- * packaged YAML. Netlify's filesystem is ephemeral and read-only at runtime, so a
- * writable SQLite database is NOT durable here. This endpoint is an internal proof
- * of the API boundary; see services/knowledge/src/api/README.md for the migration
- * path (libSQL/Turso or PostgreSQL) needed for durable serverless storage.
+ * Durable storage (ADR-0027): the store is created through the driver factory from
+ * KNOWLEDGE_DB_DRIVER / KNOWLEDGE_DB_URL / KNOWLEDGE_DB_AUTH_TOKEN. In production
+ * this is a durable remote libSQL/Turso database, so knowledge survives cold starts
+ * and deploys. Initialization is async and cached at module scope as a PROMISE, so
+ * concurrent cold-start invocations share one store. Initialization failure fails
+ * closed with a safe 500 (no filesystem paths, no credentials, no stack traces) and
+ * NEVER falls back to an in-memory fixture in production.
  */
 
 const { handle } = require('../../services/knowledge/src/api/http-handler');
@@ -28,9 +30,10 @@ const diag = makeDiagnostics();
 exports.handler = async (event) => {
   let service;
   try {
-    service = getService().service;
+    // getService() returns a cached initialization promise (warm reuse).
+    service = (await getService()).service;
   } catch (err) {
-    // Initialization failure must be safe: no filesystem paths, no stack traces.
+    // Fail closed: no filesystem paths, no stack traces, no credentials, no internals.
     diag.emit({ endpoint: '/.netlify/functions/knowledge', outcome: 'init_failure', status: 500 });
     return {
       statusCode: 500,
@@ -52,6 +55,6 @@ exports.handler = async (event) => {
     query: event.queryStringParameters || {},
   };
 
-  const res = handle(input, { service, env: process.env, diag: diag.emit });
+  const res = await handle(input, { service, env: process.env, diag: diag.emit });
   return res;
 };
