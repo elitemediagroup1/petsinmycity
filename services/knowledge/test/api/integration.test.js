@@ -4,7 +4,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 
-const { build, getService, _reset, DEFAULT_DATASET } = require('../../src/api/bootstrap');
+const { build, getService, _reset, DEFAULT_DATASET } = require('../../src/api/bootstrap-ephemeral');
 const { handle } = require('../../src/api/http-handler');
 const { ResultState } = require('../../src/delivery');
 
