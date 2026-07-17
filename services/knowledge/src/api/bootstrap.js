@@ -26,12 +26,15 @@
  *
  * Serverless reuse: getService() caches an initialization PROMISE at module scope so
  * concurrent cold-start invocations share one store rather than building several.
+ *
+ * Bundle hygiene: the packaged-YAML importer (which pulls in js-yaml + the sqlite
+ * driver) is required LAZILY, only in the ephemeral local/test branch, so it never
+ * enters the deployed serverless function bundle for the production (loop) path.
  */
 
 const path = require('path');
 const KnowledgeStore = require('../KnowledgeStore');
 const { resolveConfig } = require('../storage/create-store');
-const { importDirectory } = require('../import/importDataset');
 const { KnowledgeDeliveryService } = require('../delivery');
 
 /** Default packaged dataset: the verified Austin pilot YAML (source of record). */
@@ -73,8 +76,10 @@ async function build(opts) {
 
   // Only the ephemeral local/test fixture seeds packaged YAML at boot. Durable Loop
   // storage is already populated (Austin import is an explicit admin operation), so
-  // we NEVER import at request/boot time in production.
+  // we NEVER import at request/boot time in production. The importer is required
+  // lazily here so js-yaml + the sqlite driver stay out of the deployed loop bundle.
   if (ephemeral) {
+    const { importDirectory } = require('../import/importDataset');
     const dataset = options.dataset || env.KNOWLEDGE_DATASET_DIR || DEFAULT_DATASET;
     await importDirectory(store, dataset);
   }
