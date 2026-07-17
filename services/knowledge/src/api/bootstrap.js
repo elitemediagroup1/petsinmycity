@@ -1,109 +1,76 @@
 'use strict';
 
 /**
- * Storage + delivery bootstrap for the Knowledge API (ADR-0027, revised: async,
- * Loop-backed durable production).
- *
- * Data access flows strictly:
- *   Netlify Function -> KnowledgeDeliveryService -> KnowledgeStore -> driver / Loop.
- *
- * The API never touches SQLite directly, never touches Neon, and never imports a
- * vendor client as a second data path. It builds a store via the driver factory and
- * wraps it in the delivery service. The store is READ-ONLY at delivery time; the KDP
- * remains the sole authority for admission/freshness/ranking/conflict/safety.
- *
- * Two operating modes (chosen by configuration, never inferred unsafely):
- *   - Local / test (default): driver 'sqlite', an in-memory store (':memory:')
- *     loaded from the packaged Austin YAML. Ephemeral and rebuildable.
- *   - Durable production (KNOWLEDGE_DB_DRIVER=loop): a LoopKnowledgeStore talking to
- *     EMG Loop (the system of record; Loop persists through Neon). Data is already
- *     durable in Loop, so this path does NOT auto-import Austin (import is an explicit
- *     admin step) and does NOT fall back to ephemeral storage.
- *
- * Fail-closed: if the durable driver is configured but its configuration is invalid
- * (missing Loop base url / service token) initialization throws a safe error.
- * Production never silently falls back to an in-memory Austin fixture.
- *
- * Serverless reuse: getService() caches an initialization PROMISE at module scope so
- * concurrent cold-start invocations share one store rather than building several.
- *
- * Bundle hygiene: the packaged-YAML importer (which pulls in js-yaml + the sqlite
- * driver) is required LAZILY, only in the ephemeral local/test branch, so it never
- * enters the deployed serverless function bundle for the production (loop) path.
- */
+* PRODUCTION storage + delivery bootstrap for the Knowledge API
+* (ADR-0027, revised: async, Loop-backed durable production).
+*
+* This module is the ONLY bootstrap that the deployed Netlify Function
+* (netlify/functions/knowledge.js) is allowed to import. It builds a durable,
+* explicitly-configured store (production: EMG Loop) and wraps it in the delivery
+* service via the neutral service-builder. It has NO static path to the YAML
+* importer, to js-yaml, or to the packaged Austin research dataset, so none of
+* those can enter the production Functions bundle graph.
+*
+* Ephemeral local/test seeding (in-memory SQLite loaded from packaged YAML) lives
+* in a SEPARATE module (./bootstrap-ephemeral) that is never referenced here.
+*
+* Data access flows strictly:
+* Netlify Function -> KnowledgeDeliveryService -> KnowledgeStore -> Loop.
+*
+* Fail-closed: build() requires an explicit storage configuration (via opts or
+* env). It NEVER auto-seeds and NEVER falls back to an in-memory Austin fixture.
+* Callers that want the ephemeral seeded fixture must use ./bootstrap-ephemeral.
+*
+* Serverless reuse: getService() caches an initialization PROMISE at module scope
+* so concurrent cold-start invocations share one store.
+*/
 
-const path = require('path');
 const KnowledgeStore = require('../KnowledgeStore');
 const { resolveConfig } = require('../storage/create-store');
-const { KnowledgeDeliveryService } = require('../delivery');
-
-/** Default packaged dataset: the verified Austin pilot YAML (source of record). */
-const DEFAULT_DATASET = path.resolve(__dirname, '../../../../research/austin/pilot/data');
+const { buildService } = require('./service-builder');
 
 let _cachedPromise = null;
 
 /**
- * Does the environment/config explicitly select a storage backend? When nothing is
- * explicitly configured we use an ephemeral in-memory sqlite fixture (local/test);
- * this is the ONLY mode that auto-seeds from packaged YAML.
- */
+* Is a storage backend explicitly selected (by opts or env)? Production always is
+* (KNOWLEDGE_DB_DRIVER=loop + Loop credentials). When nothing is explicitly
+* configured, production refuses to guess: the ephemeral seeded fixture is a
+* deliberate, separate entry point (./bootstrap-ephemeral).
+*/
 function isExplicitlyConfigured(explicit, env) {
   if (explicit) return true;
   return !!(env.KNOWLEDGE_DB_DRIVER || env.EMG_LOOP_API_BASE_URL || env.KNOWLEDGE_DB_FILE);
 }
 
 /**
- * Build a fresh delivery service backed by a configured store.
- * @param {object} [opts] { dataset, config, dbFile, now, diagnosticsSink, env }
- * @returns {Promise<{ service, store, stats }>}
- */
+* Build a fresh delivery service backed by an explicitly-configured durable store.
+* Fails closed if no explicit configuration is present (production never seeds).
+* @param {object} [opts] { config, dbFile, now, diagnosticsSink, env }
+* @returns {Promise<{ service, store, stats }>}
+*/
 async function build(opts) {
   const options = opts || {};
   const env = options.env || process.env;
-
   const explicit = options.config
-    || (options.dbFile ? { driver: 'sqlite', filename: options.dbFile } : null);
-
-  const ephemeral = !isExplicitlyConfigured(explicit, env);
-
-  // Ephemeral local/test default: an isolated in-memory sqlite store, seeded from
-  // packaged YAML. Otherwise resolve the configured (possibly durable Loop) backend.
-  const cfg = ephemeral
-    ? { driver: 'sqlite', filename: ':memory:' }
-    : resolveConfig(explicit, env);
-
-  const store = await KnowledgeStore.create(cfg, env);
-
-  // Only the ephemeral local/test fixture seeds packaged YAML at boot. Durable Loop
-  // storage is already populated (Austin import is an explicit admin operation), so
-  // we NEVER import at request/boot time in production. The importer is required
-  // lazily here so js-yaml + the sqlite driver stay out of the deployed loop bundle.
-  if (ephemeral) {
-    const { importDirectory } = require('../import/importDataset');
-    const dataset = options.dataset || env.KNOWLEDGE_DATASET_DIR || DEFAULT_DATASET;
-    await importDirectory(store, dataset);
+  || (options.dbFile ? { driver: 'sqlite', filename: options.dbFile } : null);
+  if (!isExplicitlyConfigured(explicit, env)) {
+    throw new Error('knowledge bootstrap: no storage backend configured. Set KNOWLEDGE_DB_DRIVER (production: "loop" with EMG Loop credentials), or use bootstrap-ephemeral for the local/test in-memory Austin fixture.');
   }
-
-  const service = new KnowledgeDeliveryService(store, {
-    now: options.now,
-    diagnosticsSink: options.diagnosticsSink,
-  });
-  const stats = await store.stats();
-  return { service, store, stats };
+  const cfg = resolveConfig(explicit, env);
+  const store = await KnowledgeStore.create(cfg, env);
+  return buildService(store, options);
 }
 
 /**
- * Get a cached delivery service for serverless reuse. Initialization is cached as a
- * promise so repeated warm invocations reuse one store; a failed initialization
- * clears the cache so a later invocation can retry rather than caching a broken
- * state forever.
- * @param {object} [opts]
- * @returns {Promise<{ service, store, stats }>}
- */
+* Cached delivery service for serverless reuse. A failed initialization clears the
+* cache so a later invocation can retry rather than caching a broken state.
+* @param {object} [opts]
+* @returns {Promise<{ service, store, stats }>}
+*/
 function getService(opts) {
   if (_cachedPromise) return _cachedPromise;
   _cachedPromise = build(opts).catch((err) => {
-    _cachedPromise = null; // allow retry on next invocation
+    _cachedPromise = null;
     throw err;
   });
   return _cachedPromise;
@@ -120,4 +87,4 @@ async function _reset() {
   } catch (e) { /* ignore */ }
 }
 
-module.exports = { build, getService, _reset, DEFAULT_DATASET };
+module.exports = { build, getService, _reset };
