@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const { handle } = require('../../src/api/http-handler');
 const { makeDiagnostics } = require('../../src/api/diagnostics');
-const { build } = require('../../src/api/bootstrap');
+const { build } = require('../../src/api/bootstrap-ephemeral');
 const { ResultState } = require('../../src/delivery');
 
 const SECRET = 'test-internal-secret';
