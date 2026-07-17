@@ -37,8 +37,6 @@
  *   (driver 'sqlite', filename ':memory:').
  */
 
-const SqliteDriver = require('./drivers/sqlite-driver');
-
 const DRIVERS = { sqlite: true, loop: true };
 
 /** A configuration error that is safe to surface as a non-secret code. */
@@ -109,6 +107,7 @@ async function createDriver(explicit, env) {
     throw new StorageConfigError('no_sql_driver',
       'createDriver() is sqlite-only; the loop backend is not a SQL driver');
   }
+  const SqliteDriver = require('./drivers/sqlite-driver');
   return SqliteDriver.open(cfg);
 }
 
@@ -129,6 +128,7 @@ async function createKnowledgeStore(explicit, env) {
   // KnowledgeStore (which requires this module).
   const KnowledgeStore = require('../KnowledgeStore');
   const { runMigrations } = require('./migrate');
+  const SqliteDriver = require('./drivers/sqlite-driver');
   const driver = await SqliteDriver.open(cfg);
   await runMigrations(driver);
   return new KnowledgeStore(driver);
