@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const { handle } = require('../../src/api/http-handler');
 const { mapResultState, mapErrorCode, ApiCode } = require('../../src/api/errors');
-const { build } = require('../../src/api/bootstrap');
+const { build } = require('../../src/api/bootstrap-ephemeral');
 const { ResultState, ErrorCode, StorageFailureError } = require('../../src/delivery');
 
 const SECRET = 'test-internal-secret';

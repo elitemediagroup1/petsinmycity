@@ -18,3 +18,10 @@
   to = "https://petsinmycity.com/:splat"
   status = 301
   force = true
+
+# Native module (better-sqlite3) is only used by the local/test SQLite driver.
+# Netlify's esbuild bundler cannot bundle native .node addons, so mark it
+# external. The production path uses the EMG Loop provider, not SQLite.
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["better-sqlite3"]
