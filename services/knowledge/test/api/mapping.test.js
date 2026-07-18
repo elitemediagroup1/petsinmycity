@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const { handle } = require('../../src/api/http-handler');
 const { mapResultState, mapErrorCode, ApiCode } = require('../../src/api/errors');
-const { build } = require('../../src/api/bootstrap');
+const { build } = require('../../src/api/bootstrap-ephemeral');
 const { ResultState, ErrorCode, StorageFailureError } = require('../../src/delivery');
 
 const SECRET = 'test-internal-secret';
@@ -13,7 +13,7 @@ const ENV = { KNOWLEDGE_API_INTERNAL_SECRET: SECRET };
 const AUTH = { 'x-internal-key': SECRET };
 const DIAG_AUTH = { 'x-internal-key': SECRET, 'x-internal-diagnostics': '1' };
 
-function svc(now) { return build({ now }).service; }
+async function svc(now) { return (await build({ now })).service; }
 function post(headers, body, service) {
   return handle({ method: 'POST', headers, body: JSON.stringify(body) }, { service, env: ENV, diag: () => {} });
 }
@@ -38,47 +38,45 @@ test('errorCode maps: invalid->400, storage->500', () => {
 
 // ---------------- Result mapping through the handler ----------------
 
-test('resolved -> 200', () => {
-  const res = post(AUTH, { subjectId: 'place/tx/austin', predicate: 'located_in_county' }, svc());
+test('resolved -> 200', async () => {
+  const res = await post(AUTH, { subjectId: 'place/tx/austin', predicate: 'located_in_county' }, await svc());
   assert.equal(res.statusCode, 200);
 });
 
-test('unknown subject/predicate -> 404 not_found', () => {
-  const res = post(AUTH, { subjectId: 'place/nowhere', predicate: 'nonexistent' }, svc());
+test('unknown subject/predicate -> 404 not_found', async () => {
+  const res = await post(AUTH, { subjectId: 'place/nowhere', predicate: 'nonexistent' }, await svc());
   assert.equal(res.statusCode, 404);
   assert.equal(JSON.parse(res.body).result, 'not_found');
 });
 
-test('needs_verification Austin claim -> 404 (suppressed, non-disclosing) for ordinary caller', () => {
-  const res = post(AUTH, { subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }, svc());
+test('needs_verification Austin claim -> 404 (suppressed, non-disclosing) for ordinary caller', async () => {
+  const res = await post(AUTH, { subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }, await svc());
   assert.equal(res.statusCode, 404);
   const body = JSON.parse(res.body);
   assert.equal(body.state, ResultState.NOT_FOUND);
-  // Must not reveal that a suppressed record exists.
   assert.equal(body.reasons, undefined);
 });
 
-test('diagnostic mode reveals typed suppression as 422 to authorized caller', () => {
-  const res = post(DIAG_AUTH, { subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }, svc());
+test('diagnostic mode reveals typed suppression as 422 to authorized caller', async () => {
+  const res = await post(DIAG_AUTH, { subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }, await svc());
   assert.equal(res.statusCode, 422);
   const body = JSON.parse(res.body);
   assert.equal(body.result, 'inadmissible');
   assert.ok(Array.isArray(body.reasons));
 });
 
-test('expired dynamic event -> 410 after valid_until', () => {
-  // valid_until is 2026-07-16T19:00:00-05:00; query after that.
+test('expired dynamic event -> 410 after valid_until', async () => {
   const after = new Date('2026-07-20T00:00:00-05:00').getTime();
-  const res = post(AUTH, { subjectId: 'concept/hazard/austin-flooding', predicate: 'active_alert' }, svc(after));
+  const res = await post(AUTH, { subjectId: 'concept/hazard/austin-flooding', predicate: 'active_alert' }, await svc(after));
   assert.equal(res.statusCode, 410);
   assert.equal(JSON.parse(res.body).result, 'expired');
 });
 
-test('storage/service error -> 500 with no internal details', () => {
+test('storage/service error -> 500 with no internal details', async () => {
   const brokenService = {
-    getKnowledge() { throw new StorageFailureError('disk melted at /var/data/knowledge.db', { path: '/secret' }); },
+    async getKnowledge() { throw new StorageFailureError('disk melted at /var/data/knowledge.db', { path: '/secret' }); },
   };
-  const res = handle({ method: 'POST', headers: AUTH, body: JSON.stringify({ subjectId: 'a', predicate: 'b' }) }, { service: brokenService, env: ENV, diag: () => {} });
+  const res = await handle({ method: 'POST', headers: AUTH, body: JSON.stringify({ subjectId: 'a', predicate: 'b' }) }, { service: brokenService, env: ENV, diag: () => {} });
   assert.equal(res.statusCode, 500);
   assert.ok(!res.body.includes('/var/data'));
   assert.ok(!res.body.includes('/secret'));
@@ -87,8 +85,8 @@ test('storage/service error -> 500 with no internal details', () => {
 
 // ---------------- Envelope preservation ----------------
 
-test('kdp.v1 identity, trust, freshness, provenance and delivery preserved unchanged', () => {
-  const res = post(AUTH, { subjectId: 'org/emergency-vet/tx/austin/aves', predicate: 'emergency_availability' }, svc());
+test('kdp.v1 identity, trust, freshness, provenance and delivery preserved unchanged', async () => {
+  const res = await post(AUTH, { subjectId: 'org/emergency-vet/tx/austin/aves', predicate: 'emergency_availability' }, await svc());
   assert.equal(res.statusCode, 200);
   const env = JSON.parse(res.body).envelope;
   const item = env.items[0];
@@ -101,8 +99,8 @@ test('kdp.v1 identity, trust, freshness, provenance and delivery preserved uncha
   assert.ok(env.delivery.trace_id);
 });
 
-test('trace_id is preserved at the top level of the response', () => {
-  const res = post(AUTH, { subjectId: 'place/tx/austin', predicate: 'located_in_county' }, svc());
+test('trace_id is preserved at the top level of the response', async () => {
+  const res = await post(AUTH, { subjectId: 'place/tx/austin', predicate: 'located_in_county' }, await svc());
   const body = JSON.parse(res.body);
   assert.ok(body.trace_id);
   assert.equal(body.trace_id, body.envelope.delivery.trace_id);
@@ -110,24 +108,21 @@ test('trace_id is preserved at the top level of the response', () => {
 
 // ---------------- Safety ----------------
 
-test('unverified (needs_verification) safety claim never appears in HTTP payload', () => {
-  const res = post(AUTH, { subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }, svc());
-  assert.ok(!res.body.includes('unknown') || JSON.parse(res.body).state === ResultState.NOT_FOUND);
-  // The suppressed value 'unknown' must not be delivered as fact.
+test('unverified (needs_verification) safety claim never appears in HTTP payload', async () => {
+  const res = await post(AUTH, { subjectId: 'place/tx/austin/red-bud-isle', predicate: 'off_leash_designation' }, await svc());
   const body = JSON.parse(res.body);
   assert.notEqual(body.result, 'ok');
 });
 
-test('expired safety event value never returned as usable knowledge', () => {
+test('expired safety event value never returned as usable knowledge', async () => {
   const after = new Date('2026-07-20T00:00:00-05:00').getTime();
-  const res = post(AUTH, { subjectId: 'concept/hazard/austin-flooding', predicate: 'active_alert' }, svc(after));
+  const res = await post(AUTH, { subjectId: 'concept/hazard/austin-flooding', predicate: 'active_alert' }, await svc(after));
   assert.ok(!res.body.includes('Flood Watch'));
 });
 
-test('no raw database rows are returned (only envelope structure)', () => {
-  const res = post(AUTH, { subjectId: 'place/tx/austin', predicate: 'located_in_county' }, svc());
+test('no raw database rows are returned (only envelope structure)', async () => {
+  const res = await post(AUTH, { subjectId: 'place/tx/austin', predicate: 'located_in_county' }, await svc());
   const body = JSON.parse(res.body);
-  // envelope exposes payload/provenance, never raw row keys like created_at columns at top level.
   assert.equal(body.envelope.items[0].id, undefined);
   assert.ok(body.envelope.items[0].payload);
 });

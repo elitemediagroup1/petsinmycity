@@ -2,40 +2,52 @@
 /**
  * RelationshipRepository — typed edges between entities. Edges are immutable facts;
  * re-inserting the same (edge, from, to) is a no-op (idempotent load).
+ *
+ * ADR-0027: async, driver/transaction-based. SQL and bindings are unchanged.
  */
 class RelationshipRepository {
-  constructor(db) { this.db = db; }
+  /** @param {object} executor a driver or transaction with async execute() */
+  constructor(executor) { this.db = executor; }
 
-  /** @param {object} e { edge, from, to, confidence? } */
-  add(e) {
+  async _all(sql, args) {
+    const rs = await this.db.execute({ sql, args });
+    return rs.rows;
+  }
+
+  /** @param {object} e { edge, from, to, confidence? } @returns {boolean} inserted */
+  async add(e) {
     if (!e || !e.edge) throw new Error('RelationshipRepository.add: edge type is required');
     if (!e.from || !e.to) throw new Error('RelationshipRepository.add: from and to are required');
-    const info = this.db.prepare(
-      'INSERT OR IGNORE INTO edges (edge, from_id, to_id, confidence) VALUES (?, ?, ?, ?)'
-    ).run(e.edge, e.from, e.to, e.confidence || null);
-    return info.changes > 0;
+    const rs = await this.db.execute({
+      sql: 'INSERT OR IGNORE INTO edges (edge, from_id, to_id, confidence) VALUES (@edge, @from_id, @to_id, @confidence)',
+      args: { edge: e.edge, from_id: e.from, to_id: e.to, confidence: e.confidence || null },
+    });
+    return rs.rowsAffected > 0;
   }
 
   /** Outgoing edges from an entity, optionally filtered by edge type. */
-  from(entityId, edgeType) {
+  async from(entityId, edgeType) {
     if (edgeType) {
-      return this.db.prepare('SELECT * FROM edges WHERE from_id = ? AND edge = ?').all(entityId, edgeType);
+      return this._all('SELECT * FROM edges WHERE from_id = @from_id AND edge = @edge', { from_id: entityId, edge: edgeType });
     }
-    return this.db.prepare('SELECT * FROM edges WHERE from_id = ?').all(entityId);
+    return this._all('SELECT * FROM edges WHERE from_id = @from_id', { from_id: entityId });
   }
 
   /** Incoming edges to an entity, optionally filtered by edge type. */
-  to(entityId, edgeType) {
+  async to(entityId, edgeType) {
     if (edgeType) {
-      return this.db.prepare('SELECT * FROM edges WHERE to_id = ? AND edge = ?').all(entityId, edgeType);
+      return this._all('SELECT * FROM edges WHERE to_id = @to_id AND edge = @edge', { to_id: entityId, edge: edgeType });
     }
-    return this.db.prepare('SELECT * FROM edges WHERE to_id = ?').all(entityId);
+    return this._all('SELECT * FROM edges WHERE to_id = @to_id', { to_id: entityId });
   }
 
-  byType(edgeType) {
-    return this.db.prepare('SELECT * FROM edges WHERE edge = ?').all(edgeType);
+  async byType(edgeType) {
+    return this._all('SELECT * FROM edges WHERE edge = @edge', { edge: edgeType });
   }
 
-  count() { return this.db.prepare('SELECT COUNT(*) AS n FROM edges').get().n; }
+  async count() {
+    const rs = await this.db.execute({ sql: 'SELECT COUNT(*) AS n FROM edges' });
+    return rs.rows[0].n;
+  }
 }
 module.exports = RelationshipRepository;

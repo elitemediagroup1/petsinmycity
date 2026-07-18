@@ -1,9 +1,15 @@
 name: knowledge-tests
 
-# Minimal CI: install deps in services/knowledge and run storage + delivery + API
-# tests. Fails the PR on any test failure. No secrets are required: the API tests
-# supply a temporary internal secret in-process and use in-memory SQLite fixtures
-# that are discarded when the runner exits.
+# CI for the Knowledge service (ADR-0027, revised). Installs deps in services/knowledge
+# and runs storage + shared SQL contract + Loop-provider (mocked) + delivery + API +
+# import + migration tests. Fails the PR on any test failure.
+#
+# NO production secrets are required. Production storage is EMG Loop, but the Loop
+# provider is exercised here against a MOCK fetch (test/contract/loop-provider.test.js),
+# the SQL contract suite runs on in-memory SQLite, the API tests supply a temporary
+# internal secret in-process, and all fixtures use in-memory databases discarded when
+# the runner exits. An optional credentialed remote Loop smoke test is documented
+# separately (services/knowledge/STORAGE.md) and is NOT part of ordinary CI.
 
 on:
   push:
@@ -33,8 +39,11 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run migrations (smoke)
-        run: npm run migrate -- ':memory:' || true
+      - name: Run migrations (smoke, in-memory sqlite)
+        run: npm run migrate -- ':memory:'
 
-      - name: Run tests (storage + delivery + api)
+      - name: Readiness check (in-memory sqlite, schema only)
+        run: npm run readiness -- ':memory:' || true
+
+      - name: Run tests (storage + contract + delivery + api + import + migration)
         run: npm test
