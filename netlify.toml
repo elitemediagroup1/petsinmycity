@@ -1,6 +1,20 @@
 [build]
   publish = "."
   functions = "netlify/functions"
+  # Deliberately the syntax check only, not `npm run build`.
+  # The test suite needs devDependencies (jsdom); a Netlify build with
+  # NODE_ENV=production would skip those and fail. Tests run in CI
+  # (.github/workflows) and locally via `npm run build:production`.
+  command = "npm run check:syntax"
+
+# Pinned Node runtime.
+#
+# The functions rely on the runtime's BUILT-IN global fetch and AbortController
+# (netlify/lib/fetch-timeout.js), which require Node 18+. Node 20 is pinned here
+# to match .nvmrc, package.json "engines", and the version CI installs, so the
+# build, the tests and production all run the same major.
+[build.environment]
+  NODE_VERSION = "20"
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
@@ -12,6 +26,38 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+    # Permissions Policy: everything the site does not use is switched off.
+    # No page requests geolocation, camera, microphone, USB, sensors or
+    # payment, so those are denied outright rather than left at the browser
+    # default.
+    Permissions-Policy = "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), browsing-topics=(), interest-cohort=()"
+
+    # Content Security Policy - REPORT ONLY.
+    #
+    # Deliberately not enforced yet. Enforcing today would break production:
+    # the site still has many inline <script> blocks and inline event handler
+    # attributes, and the policy below intentionally OMITS 'unsafe-inline' from
+    # script-src so that the browser console reports every one of them. That
+    # report is the work list for the follow-up change; only once it is empty
+    # (or covered by nonces) should this become Content-Security-Policy.
+    #
+    # Third-party inventory behind each directive:
+    #   googletagmanager / google-analytics / doubleclick  -> GA4 (G-YVNBXJBZZ3)
+    #   pagead2.googlesyndication / googleads.g.doubleclick -> Google AdSense
+    #   js-na2.hsforms.net / api.hsforms.com / forms.hsforms.com -> HubSpot forms
+    #   fonts.googleapis.com / fonts.gstatic.com           -> Google Fonts
+    #   images.unsplash.com / media1.tenor.com / cdn.petsinmycity.com
+    #     / dbw3zep4prcju.cloudfront.net                   -> imagery
+    #   maps.googleapis.com / maps.gstatic.com             -> Google Places result imagery
+    #   'self' /.netlify/functions/*                       -> Lucy, Paw Tools, Places, Knowledge
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self' https://api.hsforms.com https://forms.hsforms.com; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://js-na2.hsforms.net https://js.hsforms.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://media1.tenor.com https://cdn.petsinmycity.com https://dbw3zep4prcju.cloudfront.net https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://maps.googleapis.com https://maps.gstatic.com https://www.google.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://api.hsforms.com https://forms.hsforms.com; frame-src https://www.googletagmanager.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://tpc.googlesyndication.com; upgrade-insecure-requests"
+
+# NOTE: no header rule is added for /*.txt. The IndexNow key-verification file
+# at the site root must stay publicly fetchable exactly as Netlify already
+# serves it - the IndexNow protocol validates our submissions against it - and
+# robots.txt / ads.txt live in the same namespace, so this is deliberately left
+# untouched.
 
 [[redirects]]
   from = "https://www.petsinmycity.com/*"

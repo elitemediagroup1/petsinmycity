@@ -23,6 +23,8 @@
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/script.js" defer></script>
 <script src="/assets/lucy.js" defer></script>
+<script src="/assets/safe-markdown.js"></script>
+<script src="/assets/pet-tools-client.js"></script>
 <style>
 .tool-card{background:#fff;border:1px solid #f0e5ce;border-radius:14px;padding:28px;box-shadow:0 4px 20px rgba(146,64,14,0.06)}
 .tool-label{display:block;font-family:Nunito,sans-serif;font-weight:700;font-size:0.92rem;color:#1a1a1a;margin:14px 0 8px 0}
@@ -76,6 +78,8 @@
       </div>
       <label class="tool-label" for="sit">What is happening?</label>
       <textarea id="sit" class="tool-textarea" placeholder="Describe the emergency or situation (e.g. ate rat poison 30 minutes ago, hit by car, seizure just stopped)"></textarea>
+      <label class="tool-label" for="emg-zip">Your ZIP code (optional &mdash; points the emergency vet search at your area)</label>
+      <input id="emg-zip" class="tool-input" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="e.g. 60601">
       <button id="tool-submit" type="button" class="tool-submit danger" onclick="runEmergency()">Get Emergency Guidance &#128680;</button>
     </div>
     <div id="tool-result" style="margin-top:24px"></div>
@@ -110,26 +114,29 @@
 <div id="site-footer"></div>
 <script>
 function _el(id){return document.getElementById(id);}
-function _busy(b){var btn=_el('tool-submit');if(!btn)return;if(b){btn.dataset.lbl=btn.textContent;btn.textContent='Thinking...';btn.disabled=true;}else{if(btn.dataset.lbl)btn.textContent=btn.dataset.lbl;btn.disabled=false;}}
-function _esc(s){return String(s||'').replace(/[&<>]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];});}
-function _render(txt){var html=_esc(txt);html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');var lines=html.split('\n');var out=[];var inList=false;for(var i=0;i<lines.length;i++){var ln=lines[i];if(/^\s*[-*]\s+/.test(ln)){if(!inList){out.push('<ul style="margin:0 0 12px 20px;padding:0">');inList=true;}out.push('<li style="margin:4px 0">'+ln.replace(/^\s*[-*]\s+/,'')+'</li>');}else if(/^\s*\d+\.\s+/.test(ln)){if(!inList){out.push('<ol style="margin:0 0 12px 20px;padding:0">');inList='ol';}out.push('<li style="margin:4px 0">'+ln.replace(/^\s*\d+\.\s+/,'')+'</li>');}else{if(inList){out.push(inList==='ol'?'</ol>':'</ul>');inList=false;}if(ln.trim()==='')out.push('');else out.push('<p style="margin:0 0 10px 0">'+ln+'</p>');}}if(inList)out.push(inList==='ol'?'</ol>':'</ul>');return out.join('');}
 function _toggle(g,btn,v){var els=document.querySelectorAll('[data-toggle="'+g+'"]');for(var i=0;i<els.length;i++)els[i].classList.remove('active');btn.classList.add('active');window['_v_'+g]=v;}
 function _getToggle(g,d){return window['_v_'+g]||d;}
-function _setResult(h){_el('tool-result').innerHTML=h;}
-function _callTool(t,m,e,p,cb){_busy(true);if(window.gtag&&e)gtag('event',e,p||{});fetch('/.netlify/functions/pet-tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tool:t,message:m})}).then(function(r){return r.json();}).then(function(d){_busy(false);var x='';if(d&&d.content){if(Array.isArray(d.content))x=d.content.map(function(c){return c.text||'';}).join('\n');else x=String(d.content);}else if(d&&d.error){x='Error: '+d.error;}if(cb)cb(x);else _setResult('<div class="tool-result-card">'+_render(x)+'</div>');}).catch(function(){_busy(false);_setResult('<div class="tool-result-card danger">Sorry, something went wrong. Please try again.</div>');});}
 
 function runEmergency(){
   var sit=_el('sit').value.trim();
-  if(!sit){_el('sit').focus();return;}
+  var result=_el('tool-result');
+  if(!sit){PIMCTools.renderError(result,'Please describe the situation.');_el('sit').focus();return;}
   var pet=_getToggle('pet','dog');
-  var msg='My '+pet+' is having a possible emergency: '+sit+'. Tell me if this is a pet emergency (yes/no), what to do right now, what to bring to the emergency vet, how to stabilize during transport, and what to tell the vet on arrival.';
-  _callTool('emergency-finder',msg,'emergency_check_submitted',{pet_type:pet},function(txt){
-    var low=txt.toLowerCase();
-    var cls='tool-result-card';
-    var banner='';
-    if(/yes.*emergency|emergency.*yes|go now|immediately|right away|life.?threat/.test(low)){cls='tool-result-card danger';banner='<div style="font-size:1.5rem;margin-bottom:10px;font-weight:800">&#128308; YES &mdash; THIS IS AN EMERGENCY</div>';if(window.gtag)gtag('event','emergency_level',{level:'emergency'});}
-    else{cls='tool-result-card caution';banner='<div style="font-size:1.5rem;margin-bottom:10px;font-weight:800">&#128993; MONITOR BUT CALL VET</div>';if(window.gtag)gtag('event','emergency_level',{level:'monitor_call_vet'});}
-    _setResult('<div class="'+cls+'">'+banner+_render(txt)+'</div>');
+  var zipEl=_el('emg-zip');
+  var zip=zipEl?zipEl.value.trim():'';
+  PIMCTools.run({
+    tool:'emergency-finder',
+    toolName:'emergency_finder',
+    input:{species:pet,situation:sit},
+    zip:/^\d{5}$/.test(zip)?zip:undefined,
+    gaEvent:'emergency_check_submitted',
+    gaParams:{pet_type:pet},
+    // The emergency decision is made server-side and rendered before this
+    // runs. This only labels the remaining, non-emergency case.
+    classify:function(){
+      PIMCTools.track('emergency_level',{level:'monitor_call_vet'});
+      return {cls:'caution',heading:'\uD83D\uDFE1 Monitor - and call your vet'};
+    }
   });
 }
 </script>

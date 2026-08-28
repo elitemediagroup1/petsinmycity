@@ -1,7 +1,23 @@
 {
   "name": "petsinmycity",
   "version": "1.0.0",
+  "private": true,
+  "description": "PetsInMyCity - static site plus Netlify Functions (Lucy AI, Paw Tools, Places search, Knowledge API, IndexNow relay).",
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "scripts": {
+    "build": "npm run check:syntax && npm run test",
+    "build:production": "npm ci && npm run check:syntax && npm run test:all",
+    "check:syntax": "node scripts/check-syntax.js",
+    "test": "node --test test/*.test.js",
+    "test:knowledge": "cd services/knowledge && node --test $(find test -name '*.test.js' | sort)",
+    "test:all": "npm run test && npm run test:knowledge"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
   }
 }

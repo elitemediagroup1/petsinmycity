@@ -271,8 +271,16 @@
     var metaBits = [pet.species, pet.breed].filter(nonEmpty);
     $('mp-pet-meta').textContent = metaBits.join(' • ') || 'Pet profile';
     var photo = $('mp-pet-photo');
-    if (pet.photoLocal) { photo.innerHTML = '<img alt="" src="' + pet.photoLocal + '">'; }
-    else { photo.textContent = speciesEmoji(pet.species); }
+    // The stored photo is a locally-created data: URL. Build the <img> with DOM
+    // methods rather than an HTML string, and accept only an image data URL, so
+    // a tampered profile record cannot inject markup or a foreign resource.
+    while (photo.firstChild) { photo.removeChild(photo.firstChild); }
+    if (pet.photoLocal && /^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(String(pet.photoLocal))) {
+      var img = document.createElement('img');
+      img.alt = '';
+      img.src = pet.photoLocal;
+      photo.appendChild(img);
+    } else { photo.textContent = speciesEmoji(pet.species); }
     // detail grid
     var age = ageFromBirthday(pet.birthday) || pet.ageText || '';
     var rows = [

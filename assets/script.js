@@ -2,7 +2,7 @@
 
 (function(){
 function buildHeader(){
-return "<style>\nheader {\n background: white;\n border-bottom: 1px solid #fde68a;\n position: sticky;\n top: 0;\n z-index: 1000;\n box-shadow: 0 1px 8px rgba(0,0,0,0.06);\n}\n.pimc-nav {\n max-width: 1200px;\n margin: 0 auto;\n padding: 0 24px;\n height: 220px;\n display: flex;\n align-items: center;\n justify-content: space-between;\n gap: 24px;\n}\n.pimc-nav-logo {\n display: flex;\n align-items: center;\n gap: 10px;\n text-decoration: none;\n flex-shrink: 0;\n}\n.pimc-nav-logo img {\n height: 200px;\n width: auto;\n}\n.pimc-nav-logo-text {\n font-family: Inter, sans-serif;\n font-weight: 800;\n font-size: 1.1rem;\n color: #1a1a1a;\n}\n.pimc-nav-logo-text span {\n color: #F59E0B;\n}\n.pimc-nav-links {\n display: flex;\n align-items: center;\n gap: 4px;\n flex: 1;\n justify-content: center;\n}\n.pimc-nav-links a {\n font-family: Inter, sans-serif;\n font-size: 0.9rem;\n font-weight: 500;\n color: #374151;\n text-decoration: none;\n padding: 8px 12px;\n border-radius: 8px;\n transition: background 0.15s, color 0.15s;\n white-space: nowrap;\n}\n.pimc-nav-links a:hover {\n background: #fff8e7;\n color: #92400e;\n}\n.pimc-nav-links a[aria-current=\"page\"] {\n color: #92400e;\n background: #fff8e7;\n font-weight: 700;\n box-shadow: inset 0 -2px 0 #F59E0B;\n}\n.pimc-nav-right {\n display: flex;\n align-items: center;\n flex-shrink: 0;\n}\n.nav-dropdown {\n position: relative;\n}\n.nav-dropdown > a {\n display: inline-flex;\n align-items: center;\n gap: 4px;\n font-family: Inter, sans-serif;\n font-size: 0.9rem;\n font-weight: 500;\n color: #374151;\n text-decoration: none;\n padding: 8px 12px;\n border-radius: 8px;\n cursor: pointer;\n transition: background 0.15s;\n white-space: nowrap;\n}\n.nav-dropdown > a:hover {\n background: #fff8e7;\n color: #92400e;\n}\n.nav-dropdown-menu {\n display: none;\n position: absolute;\n top: calc(100% + 8px);\n left: 0;\n background: white;\n border: 1px solid #fde68a;\n border-radius: 14px;\n padding: 8px;\n min-width: 220px;\n box-shadow: 0 8px 32px rgba(0,0,0,0.12);\n z-index: 99999;\n flex-direction: column;\n gap: 2px;\n}\n.nav-dropdown:hover .nav-dropdown-menu,\n.nav-dropdown:focus-within .nav-dropdown-menu {\n display: flex;\n}\n.nav-dropdown-menu.open {\n display: flex !important;\n}\n.nav-dropdown-menu a {\n display: flex;\n align-items: center;\n gap: 10px;\n padding: 10px 12px;\n font-family: Inter, sans-serif;\n font-size: 0.875rem;\n color: #374151;\n text-decoration: none;\n border-radius: 8px;\n transition: background 0.15s;\n white-space: nowrap;\n}\n.nav-dropdown-menu a:hover {\n background: #fff8e7;\n color: #92400e;\n}\n.nav-dropdown-divider {\n height: 1px;\n background: #fde68a;\n margin: 4px 0;\n}\n.nav-dropdown-see-all {\n font-weight: 700 !important;\n color: #F59E0B !important;\n}\n.pimc-hamburger {\n display: none;\n background: none;\n border: none;\n cursor: pointer;\n padding: 8px;\n color: #374151;\n font-size: 1.5rem;\n}\n.pimc-mobile-nav {\n display: none;\n flex-direction: column;\n background: white;\n border-top: 1px solid #fde68a;\n padding: 16px 24px;\n gap: 4px;\n}\n.pimc-mobile-nav.open {\n display: flex;\n}\n.pimc-mobile-nav a {\n font-family: Inter, sans-serif;\n font-size: 0.95rem;\n font-weight: 500;\n color: #374151;\n text-decoration: none;\n padding: 10px 12px;\n border-radius: 8px;\n transition: background 0.15s;\n}\n.pimc-mobile-nav a:hover {\n background: #fff8e7;\n}\n.pimc-mobile-section {\n font-family: Inter, sans-serif;\n font-size: 0.75rem;\n font-weight: 700;\n color: #9ca3af;\n text-transform: uppercase;\n letter-spacing: 1px;\n padding: 12px 12px 4px;\n margin-top: 8px;\n}\n.pimc-mobile-ask-lucy {\n background: #F59E0B;\n color: white !important;\n font-weight: 700 !important;\n border-radius: 999px !important;\n text-align: center;\n margin-top: 12px;\n}\n@media (max-width: 768px) {\n .pimc-nav-links { display: none; }\n .pimc-nav-right { display: none; }\n .pimc-hamburger { display: block; }\n}\n\n.mobile-section-header {\n display:flex;\n justify-content:space-between;\n align-items:center;\n padding:14px 16px;\n font-family:Inter,sans-serif;\n font-size:0.95rem;\n font-weight:700;\n color:#1a1a1a;\n cursor:pointer;\n border-bottom:1px solid #fde68a;\n user-select:none;\n}\n.mobile-section-header:hover {\n background:#fff8e7;\n}\n.mobile-chevron {\n font-size:0.7rem;\n transition:transform 0.2s;\n color:#9ca3af;\n}\n.mobile-chevron.open {\n transform:rotate(180deg);\n}\n.mobile-section-links {\n display:none;\n flex-direction:column;\n background:#fafafa;\n border-bottom:1px solid #fde68a;\n}\n.mobile-section-links.open {\n display:flex;\n}\n.mobile-section-links a {\n font-family:Inter,sans-serif;\n font-size:0.9rem;\n font-weight:500;\n color:#374151;\n text-decoration:none;\n padding:12px 24px;\n border-bottom:1px solid #f3f4f6;\n transition:background 0.15s;\n}\n.mobile-section-links a:hover {\n background:#fff8e7;\n color:#92400e;\n}\n.mobile-simple-link {\n display:block;\n font-family:Inter,sans-serif;\n font-size:0.95rem;\n font-weight:600;\n color:#374151;\n text-decoration:none;\n padding:14px 16px;\n border-bottom:1px solid #fde68a;\n transition:background 0.15s;\n}\n.mobile-simple-link[aria-current=\"page\"] {\n color:#92400e;\n background:#fff8e7;\n font-weight:700;\n}\n.mobile-simple-link:hover {\n background:#fff8e7;\n}\n.pimc-mobile-ask-lucy {\n display:block;\n background:#F59E0B;\n color:white !important;\n font-family:Inter,sans-serif;\n font-weight:700;\n font-size:0.95rem;\n text-decoration:none;\n text-align:center;\n padding:14px 16px;\n margin:12px 16px 16px;\n border-radius:999px;\n}\n\n.nav-dropdown-soon {\n display: flex;\n align-items: center;\n justify-content: space-between;\n gap: 10px;\n padding: 10px 12px;\n font-family: Inter, sans-serif;\n font-size: 0.875rem;\n color: #9ca3af;\n border-radius: 8px;\n cursor: default;\n white-space: nowrap;\n}\n.soon-badge {\n font-family: Inter, sans-serif;\n font-size: 0.62rem;\n font-weight: 700;\n text-transform: uppercase;\n letter-spacing: 0.5px;\n color: #92400e;\n background: #fff8e7;\n border: 1px solid #fde68a;\n border-radius: 999px;\n padding: 2px 8px;\n flex-shrink: 0;\n}\n.mobile-soon {\n display: flex;\n align-items: center;\n justify-content: space-between;\n gap: 10px;\n font-family: Inter, sans-serif;\n font-size: 0.9rem;\n font-weight: 500;\n color: #9ca3af;\n padding: 12px 24px;\n border-bottom: 1px solid #f3f4f6;\n}\n</style>" + "<header>\n <nav class=\"pimc-nav\" aria-label=\"Primary\">\n <a href=\"/\" class=\"pimc-nav-logo\">\n <img src=\"/assets/logo.png\" height=\"200\" alt=\"PetsInMyCity logo\"/>\n </a>\n <div class=\"pimc-nav-links\">\n <a href=\"/today/\" data-nav=\"today\">Today</a>\n <a href=\"/\" data-nav=\"explore\">Explore</a>\n <a href=\"/about/\" data-nav=\"about\">About</a>\n <div class=\"nav-dropdown\">\n <a href=\"/find-a-vet/\" data-nav=\"find-local\" style=\"font-weight:600\">Find Local <span style=\"font-size:0.7rem\" aria-hidden=\"true\">&#9660;</span></a>\n <div class=\"nav-dropdown-menu\">\n <a href=\"/find-a-vet/\">&#128138; Find a Vet</a>\n <a href=\"/grooming/\">&#9986; Grooming</a>\n <a href=\"/boarding/\">&#127968; Boarding</a>\n <a href=\"/training/\">&#127891; Training</a>\n <div class=\"nav-dropdown-divider\"></div>\n <a href=\"/tools/emergency-finder/\">&#128680; Emergency Finder</a>\n <a href=\"/#cities\">&#128205; Browse Cities</a>\n </div>\n </div>\n <div class=\"nav-dropdown\">\n <a href=\"/tools/\" data-nav=\"tools\" onclick=\"togglePawToolsDesktop(event)\" style=\"font-weight:600\">&#128062; Paw Tools <span style=\"font-size:0.7rem\" aria-hidden=\"true\">&#9660;</span></a>\n <div class=\"nav-dropdown-menu\">\n <a href=\"/pet-emergency-planner\">&#128680; Emergency Planner</a>\n <a href=\"/my-pets/\">&#128062; My Pets</a>\n <a href=\"/online-vet/\">&#128105; Online Vet</a>\n <a href=\"/my-pets/\">&#127881; Pet Care Journey</a>\n <a href=\"/notifications/\">&#128276; Notifications</a>\n <div class=\"nav-dropdown-divider\"></div>\n <span class=\"nav-dropdown-soon\">Pet Medication Tracker <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Pet Cost Calculator <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Travel Checklist <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Lost Pet Toolkit <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Senior Pet Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Puppy Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <div class=\"nav-dropdown-divider\"></div>\n <a href=\"/tools/\" class=\"nav-dropdown-see-all\">See all Paw Tools &#8594;</a>\n </div>\n </div>\n <div class=\"nav-dropdown\">\n <a href=\"/dog-care/\" data-nav=\"resources\" style=\"font-weight:600\">Resources <span style=\"font-size:0.7rem\" aria-hidden=\"true\">&#9660;</span></a>\n <div class=\"nav-dropdown-menu\">\n <a href=\"/dog-care/\">&#128021; Dog Care</a>\n <a href=\"/online-vet/\">&#128105; Online Vet Guide</a>\n <a href=\"/adoption/\">&#128062; Adoption &amp; Rescue</a>\n <a href=\"/pet-insurance/\">&#127973; Pet Insurance</a>\n <a href=\"/supplies/\">&#128722; Supplies</a>\n <div class=\"nav-dropdown-divider\"></div>\n <a href=\"/pet-emergency-planner\">&#128203; Pet Emergency Planner</a>\n <a href=\"/partners/\">&#129309; Partners</a>\n </div>\n </div>\n <a href=\"/lucy/\" data-nav=\"lucy\">Lucy AI</a>\n <a href=\"mailto:help@elitemediagroup.io\" data-nav=\"contact\">Contact</a>\n </div>\n <div class=\"pimc-nav-right\"></div>\n <button class=\"pimc-hamburger\" onclick=\"toggleMobileNav()\" aria-label=\"Open menu\" aria-expanded=\"false\" aria-controls=\"pimc-mobile-nav\">&#9776;</button>\n </nav>\n <div class=\"pimc-mobile-nav\" id=\"pimc-mobile-nav\">\n <a href=\"/today/\" class=\"mobile-simple-link\" data-nav=\"today\">Today</a>\n <a href=\"/\" class=\"mobile-simple-link\" data-nav=\"explore\">Explore</a>\n <a href=\"/about/\" class=\"mobile-simple-link\" data-nav=\"about\">About</a>\n <div class=\"mobile-section-header\" onclick=\"toggleMobileSection('mobile-findlocal')\"><span>Find Local</span><span class=\"mobile-chevron\" id=\"chevron-findlocal\" aria-hidden=\"true\">&#9660;</span></div>\n <div class=\"mobile-section-links\" id=\"mobile-findlocal\">\n <a href=\"/find-a-vet/\">&#128138; Find a Vet</a>\n <a href=\"/grooming/\">&#9986; Grooming</a>\n <a href=\"/boarding/\">&#127968; Boarding</a>\n <a href=\"/training/\">&#127891; Training</a>\n <a href=\"/tools/emergency-finder/\">&#128680; Emergency Finder</a>\n <a href=\"/#cities\">&#128205; Browse Cities</a>\n </div>\n <div class=\"mobile-section-header\" onclick=\"toggleMobileSection('mobile-pawtools')\"><span>&#128062; Paw Tools</span><span class=\"mobile-chevron\" id=\"chevron-pawtools\" aria-hidden=\"true\">&#9660;</span></div>\n <div class=\"mobile-section-links\" id=\"mobile-pawtools\">\n <a href=\"/pet-emergency-planner\">&#128680; Emergency Planner</a>\n <a href=\"/my-pets/\">&#128062; My Pets</a>\n <a href=\"/online-vet/\">&#128105; Online Vet</a>\n <a href=\"/my-pets/\">&#127881; Pet Care Journey</a>\n <a href=\"/notifications/\">&#128276; Notifications</a>\n <span class=\"mobile-soon\">Pet Medication Tracker <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Pet Cost Calculator <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Travel Checklist <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Lost Pet Toolkit <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Senior Pet Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Puppy Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <a href=\"/tools/\" style=\"font-weight:700;color:#f59e0b !important\">See all Paw Tools &#8594;</a>\n </div>\n <div class=\"mobile-section-header\" onclick=\"toggleMobileSection('mobile-resources')\"><span>Resources</span><span class=\"mobile-chevron\" id=\"chevron-resources\" aria-hidden=\"true\">&#9660;</span></div>\n <div class=\"mobile-section-links\" id=\"mobile-resources\">\n <a href=\"/dog-care/\">&#128021; Dog Care</a>\n <a href=\"/online-vet/\">&#128105; Online Vet Guide</a>\n <a href=\"/adoption/\">&#128062; Adoption &amp; Rescue</a>\n <a href=\"/pet-insurance/\">&#127973; Pet Insurance</a>\n <a href=\"/supplies/\">&#128722; Supplies</a>\n <a href=\"/pet-emergency-planner\">&#128203; Pet Emergency Planner</a>\n <a href=\"/partners/\">&#129309; Partners</a>\n </div>\n <a href=\"/lucy/\" class=\"mobile-simple-link\" data-nav=\"lucy\">&#10024; Lucy AI</a>\n <a href=\"mailto:help@elitemediagroup.io\" class=\"mobile-simple-link\" data-nav=\"contact\">Contact</a>\n</div>\n</header>";
+return "<style>\nheader {\n background: white;\n border-bottom: 1px solid #fde68a;\n position: sticky;\n top: 0;\n z-index: 1000;\n box-shadow: 0 1px 8px rgba(0,0,0,0.06);\n}\n.pimc-nav {\n max-width: 1200px;\n margin: 0 auto;\n padding: 0 24px;\n height: 220px;\n display: flex;\n align-items: center;\n justify-content: space-between;\n gap: 24px;\n}\n.pimc-nav-logo {\n display: flex;\n align-items: center;\n gap: 10px;\n text-decoration: none;\n flex-shrink: 0;\n}\n.pimc-nav-logo img {\n height: 200px;\n width: auto;\n}\n.pimc-nav-logo-text {\n font-family: Inter, sans-serif;\n font-weight: 800;\n font-size: 1.1rem;\n color: #1a1a1a;\n}\n.pimc-nav-logo-text span {\n color: #F59E0B;\n}\n.pimc-nav-links {\n display: flex;\n align-items: center;\n gap: 4px;\n flex: 1;\n justify-content: center;\n}\n.pimc-nav-links a {\n font-family: Inter, sans-serif;\n font-size: 0.9rem;\n font-weight: 500;\n color: #374151;\n text-decoration: none;\n padding: 8px 12px;\n border-radius: 8px;\n transition: background 0.15s, color 0.15s;\n white-space: nowrap;\n}\n.pimc-nav-links a:hover {\n background: #fff8e7;\n color: #92400e;\n}\n.pimc-nav-links a[aria-current=\"page\"] {\n color: #92400e;\n background: #fff8e7;\n font-weight: 700;\n box-shadow: inset 0 -2px 0 #F59E0B;\n}\n.pimc-nav-right {\n display: flex;\n align-items: center;\n flex-shrink: 0;\n}\n.nav-dropdown {\n position: relative;\n}\n.nav-dropdown > a {\n display: inline-flex;\n align-items: center;\n gap: 4px;\n font-family: Inter, sans-serif;\n font-size: 0.9rem;\n font-weight: 500;\n color: #374151;\n text-decoration: none;\n padding: 8px 12px;\n border-radius: 8px;\n cursor: pointer;\n transition: background 0.15s;\n white-space: nowrap;\n}\n.nav-dropdown > a:hover {\n background: #fff8e7;\n color: #92400e;\n}\n.nav-dropdown-menu {\n display: none;\n position: absolute;\n top: calc(100% + 8px);\n left: 0;\n background: white;\n border: 1px solid #fde68a;\n border-radius: 14px;\n padding: 8px;\n min-width: 220px;\n box-shadow: 0 8px 32px rgba(0,0,0,0.12);\n z-index: 99999;\n flex-direction: column;\n gap: 2px;\n}\n.nav-dropdown:hover .nav-dropdown-menu,\n.nav-dropdown:focus-within .nav-dropdown-menu {\n display: flex;\n}\n.nav-dropdown-menu.open {\n display: flex !important;\n}\n.nav-dropdown-menu a {\n display: flex;\n align-items: center;\n gap: 10px;\n padding: 10px 12px;\n font-family: Inter, sans-serif;\n font-size: 0.875rem;\n color: #374151;\n text-decoration: none;\n border-radius: 8px;\n transition: background 0.15s;\n white-space: nowrap;\n}\n.nav-dropdown-menu a:hover {\n background: #fff8e7;\n color: #92400e;\n}\n.nav-dropdown-divider {\n height: 1px;\n background: #fde68a;\n margin: 4px 0;\n}\n.nav-dropdown-see-all {\n font-weight: 700 !important;\n color: #F59E0B !important;\n}\n.pimc-hamburger {\n display: none;\n background: none;\n border: none;\n cursor: pointer;\n padding: 8px;\n color: #374151;\n font-size: 1.5rem;\n}\n.pimc-mobile-nav {\n display: none;\n flex-direction: column;\n background: white;\n border-top: 1px solid #fde68a;\n padding: 16px 24px;\n gap: 4px;\n}\n.pimc-mobile-nav.open {\n display: flex;\n}\n.pimc-mobile-nav a {\n font-family: Inter, sans-serif;\n font-size: 0.95rem;\n font-weight: 500;\n color: #374151;\n text-decoration: none;\n padding: 10px 12px;\n border-radius: 8px;\n transition: background 0.15s;\n}\n.pimc-mobile-nav a:hover {\n background: #fff8e7;\n}\n.pimc-mobile-section {\n font-family: Inter, sans-serif;\n font-size: 0.75rem;\n font-weight: 700;\n color: #9ca3af;\n text-transform: uppercase;\n letter-spacing: 1px;\n padding: 12px 12px 4px;\n margin-top: 8px;\n}\n.pimc-mobile-ask-lucy {\n background: #F59E0B;\n color: white !important;\n font-weight: 700 !important;\n border-radius: 999px !important;\n text-align: center;\n margin-top: 12px;\n}\n@media (max-width: 768px) {\n .pimc-nav-links { display: none; }\n .pimc-nav-right { display: none; }\n .pimc-hamburger { display: block; }\n}\n\n.mobile-section-header {\n display:flex;\n justify-content:space-between;\n align-items:center;\n padding:14px 16px;\n font-family:Inter,sans-serif;\n font-size:0.95rem;\n font-weight:700;\n color:#1a1a1a;\n cursor:pointer;\n border-bottom:1px solid #fde68a;\n user-select:none;\n}\n.mobile-section-header:hover {\n background:#fff8e7;\n}\n.mobile-chevron {\n font-size:0.7rem;\n transition:transform 0.2s;\n color:#9ca3af;\n}\n.mobile-chevron.open {\n transform:rotate(180deg);\n}\n.mobile-section-links {\n display:none;\n flex-direction:column;\n background:#fafafa;\n border-bottom:1px solid #fde68a;\n}\n.mobile-section-links.open {\n display:flex;\n}\n.mobile-section-links a {\n font-family:Inter,sans-serif;\n font-size:0.9rem;\n font-weight:500;\n color:#374151;\n text-decoration:none;\n padding:12px 24px;\n border-bottom:1px solid #f3f4f6;\n transition:background 0.15s;\n}\n.mobile-section-links a:hover {\n background:#fff8e7;\n color:#92400e;\n}\n.mobile-simple-link {\n display:block;\n font-family:Inter,sans-serif;\n font-size:0.95rem;\n font-weight:600;\n color:#374151;\n text-decoration:none;\n padding:14px 16px;\n border-bottom:1px solid #fde68a;\n transition:background 0.15s;\n}\n.mobile-simple-link[aria-current=\"page\"] {\n color:#92400e;\n background:#fff8e7;\n font-weight:700;\n}\n.mobile-simple-link:hover {\n background:#fff8e7;\n}\n.pimc-mobile-ask-lucy {\n display:block;\n background:#F59E0B;\n color:white !important;\n font-family:Inter,sans-serif;\n font-weight:700;\n font-size:0.95rem;\n text-decoration:none;\n text-align:center;\n padding:14px 16px;\n margin:12px 16px 16px;\n border-radius:999px;\n}\n\n.nav-dropdown-soon {\n display: flex;\n align-items: center;\n justify-content: space-between;\n gap: 10px;\n padding: 10px 12px;\n font-family: Inter, sans-serif;\n font-size: 0.875rem;\n color: #9ca3af;\n border-radius: 8px;\n cursor: default;\n white-space: nowrap;\n}\n.soon-badge {\n font-family: Inter, sans-serif;\n font-size: 0.62rem;\n font-weight: 700;\n text-transform: uppercase;\n letter-spacing: 0.5px;\n color: #92400e;\n background: #fff8e7;\n border: 1px solid #fde68a;\n border-radius: 999px;\n padding: 2px 8px;\n flex-shrink: 0;\n}\n.mobile-soon {\n display: flex;\n align-items: center;\n justify-content: space-between;\n gap: 10px;\n font-family: Inter, sans-serif;\n font-size: 0.9rem;\n font-weight: 500;\n color: #9ca3af;\n padding: 12px 24px;\n border-bottom: 1px solid #f3f4f6;\n}\n</style>" + "<header>\n <nav class=\"pimc-nav\" aria-label=\"Primary\">\n <a href=\"/\" class=\"pimc-nav-logo\">\n <img src=\"/assets/logo.png\" height=\"200\" alt=\"PetsInMyCity logo\"/>\n </a>\n <div class=\"pimc-nav-links\">\n <a href=\"/today/\" data-nav=\"today\">Today</a>\n <a href=\"/\" data-nav=\"explore\">Explore</a>\n <a href=\"/about/\" data-nav=\"about\">About</a>\n <div class=\"nav-dropdown\">\n <a href=\"/find-a-vet/\" data-nav=\"find-local\" style=\"font-weight:600\">Find Local <span style=\"font-size:0.7rem\" aria-hidden=\"true\">&#9660;</span></a>\n <div class=\"nav-dropdown-menu\">\n <a href=\"/find-a-vet/\">&#128138; Find a Vet</a>\n <a href=\"/grooming/\">&#9986; Grooming</a>\n <a href=\"/boarding/\">&#127968; Boarding</a>\n <a href=\"/training/\">&#127891; Training</a>\n <div class=\"nav-dropdown-divider\"></div>\n <a href=\"/tools/emergency-finder/\">&#128680; Emergency Finder</a>\n <a href=\"/#cities\">&#128205; Browse Cities</a>\n </div>\n </div>\n <div class=\"nav-dropdown\">\n <a href=\"/tools/\" data-nav=\"tools\" data-pimc-action=\"toggle-pawtools\" style=\"font-weight:600\">&#128062; Paw Tools <span style=\"font-size:0.7rem\" aria-hidden=\"true\">&#9660;</span></a>\n <div class=\"nav-dropdown-menu\">\n <a href=\"/pet-emergency-planner\">&#128680; Emergency Planner</a>\n <a href=\"/my-pets/\">&#128062; My Pets</a>\n <a href=\"/online-vet/\">&#128105; Online Vet</a>\n <a href=\"/my-pets/\">&#127881; Pet Care Journey</a>\n <a href=\"/notifications/\">&#128276; Notifications</a>\n <div class=\"nav-dropdown-divider\"></div>\n <span class=\"nav-dropdown-soon\">Pet Medication Tracker <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Pet Cost Calculator <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Travel Checklist <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Lost Pet Toolkit <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Senior Pet Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"nav-dropdown-soon\">Puppy Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <div class=\"nav-dropdown-divider\"></div>\n <a href=\"/tools/\" class=\"nav-dropdown-see-all\">See all Paw Tools &#8594;</a>\n </div>\n </div>\n <div class=\"nav-dropdown\">\n <a href=\"/dog-care/\" data-nav=\"resources\" style=\"font-weight:600\">Resources <span style=\"font-size:0.7rem\" aria-hidden=\"true\">&#9660;</span></a>\n <div class=\"nav-dropdown-menu\">\n <a href=\"/dog-care/\">&#128021; Dog Care</a>\n <a href=\"/online-vet/\">&#128105; Online Vet Guide</a>\n <a href=\"/adoption/\">&#128062; Adoption &amp; Rescue</a>\n <a href=\"/pet-insurance/\">&#127973; Pet Insurance</a>\n <a href=\"/supplies/\">&#128722; Supplies</a>\n <div class=\"nav-dropdown-divider\"></div>\n <a href=\"/pet-emergency-planner\">&#128203; Pet Emergency Planner</a>\n <a href=\"/partners/\">&#129309; Partners</a>\n </div>\n </div>\n <a href=\"/lucy/\" data-nav=\"lucy\">Lucy AI</a>\n <a href=\"mailto:help@elitemediagroup.io\" data-nav=\"contact\">Contact</a>\n </div>\n <div class=\"pimc-nav-right\"></div>\n <button class=\"pimc-hamburger\" data-pimc-action=\"toggle-mobile-nav\" aria-label=\"Open menu\" aria-expanded=\"false\" aria-controls=\"pimc-mobile-nav\">&#9776;</button>\n </nav>\n <div class=\"pimc-mobile-nav\" id=\"pimc-mobile-nav\">\n <a href=\"/today/\" class=\"mobile-simple-link\" data-nav=\"today\">Today</a>\n <a href=\"/\" class=\"mobile-simple-link\" data-nav=\"explore\">Explore</a>\n <a href=\"/about/\" class=\"mobile-simple-link\" data-nav=\"about\">About</a>\n <div class=\"mobile-section-header\" data-pimc-action=\"toggle-section\" data-pimc-target=\"mobile-findlocal\"><span>Find Local</span><span class=\"mobile-chevron\" id=\"chevron-findlocal\" aria-hidden=\"true\">&#9660;</span></div>\n <div class=\"mobile-section-links\" id=\"mobile-findlocal\">\n <a href=\"/find-a-vet/\">&#128138; Find a Vet</a>\n <a href=\"/grooming/\">&#9986; Grooming</a>\n <a href=\"/boarding/\">&#127968; Boarding</a>\n <a href=\"/training/\">&#127891; Training</a>\n <a href=\"/tools/emergency-finder/\">&#128680; Emergency Finder</a>\n <a href=\"/#cities\">&#128205; Browse Cities</a>\n </div>\n <div class=\"mobile-section-header\" data-pimc-action=\"toggle-section\" data-pimc-target=\"mobile-pawtools\"><span>&#128062; Paw Tools</span><span class=\"mobile-chevron\" id=\"chevron-pawtools\" aria-hidden=\"true\">&#9660;</span></div>\n <div class=\"mobile-section-links\" id=\"mobile-pawtools\">\n <a href=\"/pet-emergency-planner\">&#128680; Emergency Planner</a>\n <a href=\"/my-pets/\">&#128062; My Pets</a>\n <a href=\"/online-vet/\">&#128105; Online Vet</a>\n <a href=\"/my-pets/\">&#127881; Pet Care Journey</a>\n <a href=\"/notifications/\">&#128276; Notifications</a>\n <span class=\"mobile-soon\">Pet Medication Tracker <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Pet Cost Calculator <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Travel Checklist <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Lost Pet Toolkit <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Senior Pet Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <span class=\"mobile-soon\">Puppy Planner <span class=\"soon-badge\">Coming Soon</span></span>\n <a href=\"/tools/\" style=\"font-weight:700;color:#f59e0b !important\">See all Paw Tools &#8594;</a>\n </div>\n <div class=\"mobile-section-header\" data-pimc-action=\"toggle-section\" data-pimc-target=\"mobile-resources\"><span>Resources</span><span class=\"mobile-chevron\" id=\"chevron-resources\" aria-hidden=\"true\">&#9660;</span></div>\n <div class=\"mobile-section-links\" id=\"mobile-resources\">\n <a href=\"/dog-care/\">&#128021; Dog Care</a>\n <a href=\"/online-vet/\">&#128105; Online Vet Guide</a>\n <a href=\"/adoption/\">&#128062; Adoption &amp; Rescue</a>\n <a href=\"/pet-insurance/\">&#127973; Pet Insurance</a>\n <a href=\"/supplies/\">&#128722; Supplies</a>\n <a href=\"/pet-emergency-planner\">&#128203; Pet Emergency Planner</a>\n <a href=\"/partners/\">&#129309; Partners</a>\n </div>\n <a href=\"/lucy/\" class=\"mobile-simple-link\" data-nav=\"lucy\">&#10024; Lucy AI</a>\n <a href=\"mailto:help@elitemediagroup.io\" class=\"mobile-simple-link\" data-nav=\"contact\">Contact</a>\n</div>\n</header>";
 }
 
 function buildFooter(){
@@ -72,33 +72,277 @@ if(CITY_MAP[clean]){window.location.href = CITY_MAP[clean];return;}
 window.location.href = '/#cities';
 };
 
-window.submitVetForm = function(e){
-if(e && e.preventDefault){e.preventDefault();}
-var form = e ? e.target : document.querySelector('form');
-var name = (document.getElementById('vet-name')||{}).value || '';
-var phone = (document.getElementById('vet-phone')||{}).value || '';
-var zip = (document.getElementById('vet-zip')||{}).value || '';
-var pet = (document.getElementById('vet-pet')||{}).value || '';
-if(!name||!phone||!zip||!pet){alert('Please fill in all fields.');return false;}
-try{
-fetch('https://api.hsforms.com/submissions/v3/integration/submit/243957727/243d8ca3-2c2d-484f-bf44-264f02ad446c', {
-method:'POST', headers:{'Content-Type':'application/json'},
-body: JSON.stringify({fields:[
-{name:'firstname',value:name},
-{name:'phone',value:phone},
-{name:'zip',value:zip},
-{name:'pet_type',value:pet}
-], context:{pageUri:window.location.href, pageName:document.title}})
-}).catch(function(){});
-}catch(_){}
-if(form){
-form.innerHTML = '<div style="text-align:center;padding:24px">'+
-'<p style="font-family:Nunito;font-weight:800;font-size:1.2rem;color:var(--amber-dark);margin-bottom:8px">&#x1F43E; Got it!</p>'+
-'<p style="color:var(--gray)">A local vet will be in touch shortly.</p>'+
-'</div>';
+/* ---------------------------------------------------------------------------
+ * Vet lead form
+ *
+ * Previously this fired a HubSpot request, swallowed every failure with an
+ * empty .catch(), and immediately replaced the form with "A local vet will be
+ * in touch shortly." That told visitors a submission had succeeded when it may
+ * have failed, and promised an outcome the site does not control.
+ *
+ * Now:
+ *   - the HubSpot response is awaited, and success is shown only on a confirmed
+ *     2xx;
+ *   - a failure shows a retryable error and keeps the visitor's answers;
+ *   - nothing is sent until an unchecked consent box is ticked;
+ *   - the success copy states only what actually happens - we pass the request
+ *     to local veterinary practices - with no promise that one will call;
+ *   - analytics fire form_submission_success / form_submission_failure with no
+ *     personal data at all.
+ *
+ * NOTE FOR REVIEW: the consent sentence and the success copy describe contact
+ * by phone call or email only. No SMS and no autodialer language is used
+ * anywhere, because neither is documented in this repository as an actual
+ * contact method. Confirm both the wording and the real fulfilment process
+ * before this ships - see docs/LEAD_FORM_REVIEW.md.
+ * ------------------------------------------------------------------------- */
+var VET_FORM_ENDPOINT = 'https://api.hsforms.com/submissions/v3/integration/submit/243957727/243d8ca3-2c2d-484f-bf44-264f02ad446c';
+var VET_FORM_TIMEOUT_MS = 15000;
+
+function vetFormStyles(){
+if(document.getElementById('pimc-vet-form-styles')){return;}
+var st = document.createElement('style');
+st.id = 'pimc-vet-form-styles';
+st.textContent = [
+'.vet-form label{display:block;font-family:Inter,sans-serif;font-size:0.85rem;font-weight:600;color:#374151;margin:12px 0 4px}',
+'.vet-form .vet-required{color:#b91c1c}',
+'.vet-form .vet-field-error{display:none;font-family:Inter,sans-serif;font-size:0.8rem;color:#b91c1c;margin-top:4px}',
+'.vet-form .vet-field-error.show{display:block}',
+'.vet-form [aria-invalid="true"]{border-color:#b91c1c !important}',
+'.vet-form .vet-consent{display:flex;gap:10px;align-items:flex-start;margin:16px 0 4px}',
+'.vet-form .vet-consent input{margin-top:3px;width:auto;flex:none}',
+'.vet-form .vet-consent label{margin:0;font-weight:400;font-size:0.82rem;line-height:1.5;color:#4b5563}',
+'.vet-form .vet-status{margin-top:14px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;padding:12px 14px;border-radius:10px}',
+'.vet-form .vet-status.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}',
+'.vet-form .vet-status.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}',
+'.vet-form button[disabled]{opacity:0.6;cursor:not-allowed}'
+].join('\n');
+document.head.appendChild(st);
 }
-return false;
+
+function vetTrack(name, params){
+try{
+if(typeof window.pimcTrack === 'function'){ window.pimcTrack(name, params || {}); }
+else if(typeof window.gtag === 'function'){ window.gtag('event', name, params || {}); }
+}catch(err){}
+}
+
+function vetField(form, id){ return form.querySelector('#' + id) || document.getElementById(id); }
+
+function vetShowFieldError(input, message){
+if(!input){return;}
+input.setAttribute('aria-invalid', 'true');
+var holder = document.getElementById(input.id + '-error');
+if(holder){ holder.textContent = message; holder.classList.add('show'); }
+}
+
+function vetClearFieldError(input){
+if(!input){return;}
+input.removeAttribute('aria-invalid');
+var holder = document.getElementById(input.id + '-error');
+if(holder){ holder.textContent = ''; holder.classList.remove('show'); }
+}
+
+function vetStatusEl(form){
+var el = form.querySelector('.vet-status');
+if(!el){
+el = document.createElement('div');
+el.className = 'vet-status';
+el.setAttribute('role', 'status');
+el.setAttribute('aria-live', 'polite');
+form.appendChild(el);
+}
+return el;
+}
+
+function vetSetStatus(form, kind, text){
+var el = vetStatusEl(form);
+el.className = 'vet-status ' + (kind || '');
+// An error must interrupt a screen reader; a routine success need not.
+el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+el.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
+el.textContent = text || '';
+}
+
+/* Deliberately permissive: 10-15 digits, so international and formatted
+ * numbers are accepted and only obvious nonsense is rejected. */
+function vetValidPhone(value){
+var digits = String(value || '').replace(/\D/g, '');
+return digits.length >= 10 && digits.length <= 15;
+}
+
+function vetValidate(form){
+var fields = {
+name: vetField(form, 'vet-name'),
+phone: vetField(form, 'vet-phone'),
+zip: vetField(form, 'vet-zip'),
+pet: vetField(form, 'vet-pet'),
+consent: vetField(form, 'vet-consent')
 };
+var firstBad = null;
+[fields.name, fields.phone, fields.zip, fields.pet, fields.consent].forEach(vetClearFieldError);
+
+var name = (fields.name && fields.name.value || '').trim();
+if(name.length < 2 || name.length > 80){
+vetShowFieldError(fields.name, 'Please enter your name.');
+firstBad = firstBad || fields.name;
+}
+var phone = (fields.phone && fields.phone.value || '').trim();
+if(!vetValidPhone(phone)){
+vetShowFieldError(fields.phone, 'Please enter a phone number we can reach you on.');
+firstBad = firstBad || fields.phone;
+}
+var zip = (fields.zip && fields.zip.value || '').trim();
+if(!/^\d{5}(-\d{4})?$/.test(zip)){
+vetShowFieldError(fields.zip, 'Please enter a 5-digit US ZIP code.');
+firstBad = firstBad || fields.zip;
+}
+var pet = (fields.pet && fields.pet.value || '').trim();
+if(['dog','cat','other'].indexOf(pet) === -1){
+vetShowFieldError(fields.pet, 'Please choose a pet type.');
+firstBad = firstBad || fields.pet;
+}
+if(fields.consent && !fields.consent.checked){
+vetShowFieldError(fields.consent, 'Please tick the box so we know we may contact you.');
+firstBad = firstBad || fields.consent;
+}
+if(firstBad){ return { ok: false, firstBad: firstBad }; }
+return { ok: true, values: { name: name, phone: phone, zip: zip.slice(0, 5), pet: pet } };
+}
+
+function vetSetBusy(form, busy){
+var button = form.querySelector('button[type="submit"], button:not([type])');
+if(!button){ return; }
+if(busy){
+button.dataset.pimcLabel = button.dataset.pimcLabel || button.textContent;
+button.textContent = 'Sending...';
+button.disabled = true;
+button.setAttribute('aria-busy', 'true');
+}else{
+if(button.dataset.pimcLabel){ button.textContent = button.dataset.pimcLabel; }
+button.disabled = false;
+button.removeAttribute('aria-busy');
+}
+}
+
+function vetPostLead(values){
+var payload = {
+fields: [
+{ name: 'firstname', value: values.name },
+{ name: 'phone', value: values.phone },
+{ name: 'zip', value: values.zip },
+{ name: 'pet_type', value: values.pet }
+],
+context: { pageUri: window.location.href, pageName: document.title },
+legalConsentOptions: {
+consent: {
+consentToProcess: true,
+text: 'I agree that Elite Media Group LLC may contact me by phone or email about finding local veterinary care.',
+communications: [{
+value: true,
+subscriptionTypeId: null,
+text: 'I agree to be contacted by phone or email about finding local veterinary care.'
+}]
+}
+}
+};
+var options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) };
+if(typeof AbortController === 'function'){
+var controller = new AbortController();
+options.signal = controller.signal;
+setTimeout(function(){ controller.abort(); }, VET_FORM_TIMEOUT_MS);
+}
+return fetch(VET_FORM_ENDPOINT, options);
+}
+
+function vetFormLocation(){
+try{ return window.location.pathname; }catch(err){ return 'unknown'; }
+}
+
+function handleVetSubmit(e, formArg){
+if(e && e.preventDefault){ e.preventDefault(); }
+var form = formArg || (e && (e.currentTarget || e.target)) || document.querySelector('form.vet-form');
+if(!form){ return false; }
+vetFormStyles();
+form.classList.add('vet-form');
+
+var checked = vetValidate(form);
+if(!checked.ok){
+vetSetStatus(form, 'error', 'Please fix the highlighted fields and try again.');
+if(checked.firstBad && checked.firstBad.focus){ checked.firstBad.focus(); }
+// No personal data: only where the form lives and that it failed validation.
+vetTrack('form_submission_failure', { form_name: 'vet_lead', form_location: vetFormLocation(), failure_reason: 'validation' });
+return false;
+}
+
+vetSetBusy(form, true);
+vetSetStatus(form, '', 'Sending your request...');
+
+vetPostLead(checked.values).then(function(res){
+if(res && res.ok){
+vetSetBusy(form, false);
+vetSetStatus(form, 'success', 'Thanks - we have your request. We share it with veterinary practices near ZIP ' + checked.values.zip + '. We cannot guarantee that a practice will call, so if this is urgent please contact a vet directly.');
+vetTrack('form_submission_success', { form_name: 'vet_lead', form_location: vetFormLocation() });
+vetTrack('generate_lead', { method: 'vet_lead_form' });
+// Lock the form so the same lead is not sent twice, but keep it visible
+// so the visitor can still see what they submitted.
+Array.prototype.forEach.call(form.querySelectorAll('input, select, button, textarea'), function(el){ el.disabled = true; });
+return;
+}
+throw new Error('http_' + (res ? res.status : 'unknown'));
+}).catch(function(err){
+vetSetBusy(form, false);
+var aborted = err && (err.name === 'AbortError');
+vetSetStatus(form, 'error', aborted
+? 'That took too long. Please check your connection and press the button again - your details are still here.'
+: 'We could not send your request just now. Please press the button again - your details are still here.');
+// Coarse, non-identifying reason only.
+vetTrack('form_submission_failure', {
+form_name: 'vet_lead',
+form_location: vetFormLocation(),
+failure_reason: aborted ? 'timeout' : 'network_or_http'
+});
+});
+return false;
+}
+
+/* Bound with addEventListener, not an inline onsubmit attribute. */
+function initVetForms(){
+var forms = document.querySelectorAll('form.vet-form, form[data-vet-lead]');
+Array.prototype.forEach.call(forms, function(form){
+if(form.dataset.pimcVetBound === '1'){ return; }
+form.dataset.pimcVetBound = '1';
+form.classList.add('vet-form');
+form.setAttribute('novalidate', 'novalidate');
+vetFormStyles();
+form.addEventListener('submit', function(e){ handleVetSubmit(e, form); });
+});
+}
+window.pimcInitVetForms = initVetForms;
+
+/* Kept for any page still using an inline onsubmit attribute. Returning false
+ * stops the native submit exactly as before. */
+window.submitVetForm = function(e){ return handleVetSubmit(e, null); };
+
+
+/* Header interactions are bound with addEventListener rather than inline
+ * onclick attributes, so the injected header does not need 'unsafe-inline'
+ * in a future enforced Content Security Policy. The window.* functions below
+ * are kept as-is for any page that still calls them directly. */
+function bindHeaderActions(){
+var root = document.getElementById('site-header') || document.querySelector('.site-header') || document;
+var nodes = root.querySelectorAll('[data-pimc-action]');
+Array.prototype.forEach.call(nodes, function(node){
+if(node.dataset.pimcBound === '1'){ return; }
+node.dataset.pimcBound = '1';
+node.addEventListener('click', function(ev){
+var action = node.getAttribute('data-pimc-action');
+if(action === 'toggle-mobile-nav'){ window.toggleMobileNav(); }
+else if(action === 'toggle-section'){ window.toggleMobileSection(node.getAttribute('data-pimc-target')); }
+else if(action === 'toggle-pawtools'){ window.togglePawToolsDesktop(ev); }
+});
+});
+}
 
 function setActiveNav(){
 try{
@@ -135,6 +379,8 @@ if(h){h.innerHTML = buildHeader();}
 var f = document.getElementById('site-footer') || document.querySelector('.site-footer');
 if(f){f.innerHTML = buildFooter();}
 setActiveNav();
+bindHeaderActions();
+initVetForms();
 // Partner Configuration: single source of truth for affiliate partner links.
 if(!document.getElementById('partner-config-tag')){
 var pc = document.createElement('script');
@@ -321,10 +567,26 @@ banner.id = 'pimc-top-banner';
 banner.innerHTML =
 '<div style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:0.85rem;font-weight:600;padding:10px 48px 10px 24px;text-align:center;position:relative;z-index:9998">' +
 '&#128062; Free Pet Emergency Planner &#8212; Create, Save &amp; Print Your Pet&#8217;s Emergency Plan ' +
-'<a href="#pimc-email-capture" onclick="event.preventDefault();var t=document.getElementById(\'pimc-email-capture\');if(t){t.scrollIntoView({behavior:\'smooth\'});}" style="color:white;text-decoration:underline;font-weight:700">Get yours free &#8594;</a>' +
-'<button onclick="document.getElementById(\'pimc-top-banner\').style.display=\'none\';sessionStorage.setItem(\'pimc-banner-dismissed\',\'1\')" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:white;font-size:1.1rem;cursor:pointer;line-height:1;opacity:0.8;padding:4px 8px" aria-label="Dismiss">&#10005;</button>' +
+'<a href="#pimc-email-capture" data-pimc-banner-scroll style="color:white;text-decoration:underline;font-weight:700">Get yours free &#8594;</a>' +
+'<button type="button" data-pimc-banner-dismiss style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:white;font-size:1.1rem;cursor:pointer;line-height:1;opacity:0.8;padding:4px 8px" aria-label="Dismiss">&#10005;</button>' +
 '</div>';
 document.body.insertBefore(banner, document.body.firstChild);
+// Bound as listeners, not inline onclick attributes.
+var scrollLink = banner.querySelector('[data-pimc-banner-scroll]');
+if(scrollLink){
+scrollLink.addEventListener('click', function(ev){
+ev.preventDefault();
+var target = document.getElementById('pimc-email-capture');
+if(target){ target.scrollIntoView({ behavior: 'smooth' }); }
+});
+}
+var dismiss = banner.querySelector('[data-pimc-banner-dismiss]');
+if(dismiss){
+dismiss.addEventListener('click', function(){
+banner.style.display = 'none';
+try{ sessionStorage.setItem('pimc-banner-dismissed', '1'); }catch(err){}
+});
+}
 }
 if(document.readyState === 'loading'){
 document.addEventListener('DOMContentLoaded', function(){ mount(); injectTopBanner(); injectEmailCapture(); });

@@ -1,240 +1,228 @@
-// Lucy AI chat proxy for petsinmycity.com
-// Forwards browser messages to api.anthropic.com using ANTHROPIC_API_KEY env var.
-// Browser must never see the key.
+'use strict';
 
-const https = require('https');
+/**
+ * Lucy AI chat proxy for petsinmycity.com.
+ *
+ * Forwards browser messages to api.anthropic.com using the ANTHROPIC_API_KEY
+ * environment variable. The browser must never see the key, and must never see
+ * a provider error message either (Anthropic error bodies can echo request
+ * details, and a leaked 401 body tells an attacker exactly what to probe).
+ *
+ * Hardening applied here:
+ *   - POST/OPTIONS only, 16 KB body cap enforced before JSON.parse;
+ *   - CORS restricted to petsinmycity.com plus approved preview origins;
+ *   - full validation of the message array (roles, types, counts, lengths);
+ *   - durable per-client and site-wide rate limits;
+ *   - a hard timeout on the paid upstream call;
+ *   - a DETERMINISTIC veterinary safety layer that runs BEFORE the model call
+ *     and answers emergencies itself, so emergency advice is never delayed by,
+ *     or overridable by, the model.
+ *
+ * Runtime: Node 20 (netlify.toml / .nvmrc). Uses the built-in global fetch.
+ */
 
-const SYSTEM_PROMPT = `You are Lucy, a friendly AI pet advisor for PetsInMyCity.com. You are a golden retriever who loves helping pet owners. You give complete, real, helpful answers inside the chat - never deflect, never send someone away to search somewhere else when you can answer directly.
+const cors = require('../lib/cors');
+const guard = require('../lib/request-guard');
+const { errorResponse, jsonResponse } = require('../lib/errors');
+const rateLimit = require('../lib/rate-limit');
+const log = require('../lib/log');
+const validate = require('../lib/validate');
+const safety = require('../lib/safety/vet-safety');
+const { SYSTEM_PROMPT } = require('../lib/lucy-system-prompt');
+const { fetchWithTimeout, UpstreamTimeoutError } = require('../lib/fetch-timeout');
 
-THE MOST IMPORTANT RULE:
-Give the actual answer inside the chat. Always. Every single time. No exceptions.
-
-If someone asks about grooming - tell them what grooming involves, how often, what to expect, what it costs, then give them a Google Maps link to find one near their ZIP.
-
-If someone asks about food - recommend specific foods, brands, portions, and why.
-
-If someone asks about health symptoms - give real guidance on what it might be, what to watch for, and when to see a vet.
-
-If someone asks about training - give actual training tips and techniques.
-
-If someone asks about insurance - explain the options clearly and recommend the right one for their specific pet.
-
-If someone asks about cost - give real price ranges not "it depends."
-
-Never say:
-- "I recommend searching for..."
-- "You can find that at..."
-- "Check out this page to search..."
-- "I'd suggest looking into..."
-when you can just ANSWER THE QUESTION.
-
-YOUR PERSONALITY:
-- Warm, enthusiastic, genuinely helpful
-- You love animals deeply
-- Use the pet's name when mentioned
-- Occasionally use 🐾 naturally
-- Never clinical or robotic
-- Talk like a knowledgeable friend who happens to know everything about pets
-
-WHEN SOMEONE NEEDS LOCAL SERVICES:
-Always give them a direct Google Maps link that opens real results immediately. Never send them to a page that makes them search again.
-
-Format: [Find [Service] Near [City/ZIP] →](url)
-
-Google Maps search URLs:
-Groomer: https://www.google.com/maps/search/pet+groomer+near+[ZIP]
-Vet: https://www.google.com/maps/search/veterinarian+near+[ZIP]
-Dog walker: https://www.google.com/maps/search/dog+walker+near+[ZIP]
-Boarding: https://www.google.com/maps/search/dog+boarding+near+[ZIP]
-Training: https://www.google.com/maps/search/dog+trainer+near+[ZIP]
-Pet store: https://www.google.com/maps/search/pet+store+near+[ZIP]
-Emergency vet: https://www.google.com/maps/search/emergency+vet+near+[ZIP]
-Doggy daycare: https://www.google.com/maps/search/doggy+daycare+near+[ZIP]
-
-If they give a city instead of ZIP use the city name in the URL. If they haven't given location yet ask for their ZIP first then give the direct link.
-
-INSURANCE RECOMMENDATIONS:
-Be specific. Recommend the right one.
-- Rescue or adopted pet → Fetch
-  [Get Fetch Quote →](/go/fetch/)
-- Want no payout limits → Trupanion
-  [Get Trupanion Quote →](/go/trupanion/)
-- Budget under $40/month → Pets Best
-  [Get Pets Best Quote →](https://www.petsbest.com/)
-- Want to compare all options → PetInsurer
-  [Compare All Plans →](/go/petinsurer/)
-- Senior pet 8+ years → Healthy Paws
-  [Get Healthy Paws Quote →](https://www.healthypaws.com/)
-- Active outdoor dog → Trupanion
-  [Get Trupanion Quote →](/go/trupanion/)
-
-Always explain WHY you're recommending that specific provider for their pet.
-
-FOOD AND NUTRITION:
-Give specific brand recommendations. For dogs: Royal Canin, Hill's Science Diet, Purina Pro Plan, Orijen, Acana, Blue Buffalo, Wellness Core. Match food to breed, age, and health. Give feeding amounts and frequency.
-Recommend Chewy for ordering: [Shop on Chewy →](/go/chewy/)
-
-HEALTH QUESTIONS:
-Give real guidance. Be helpful. Always add: if symptoms are severe or worsening see a vet immediately. For emergencies give Google Maps emergency vet link. Never refuse to engage with health questions - give the best guidance you can and recommend vet when needed.
-
-GROOMING:
-Give breed-specific grooming advice. Frequency, tools needed, what to expect, typical costs ($40-100 depending on breed and location). Always end with Google Maps groomer link for their area.
-Golden Retrievers need grooming every 6-8 weeks, cost $65-95 typically. Include brush type, bath frequency, nail trimming schedule.
-
-TRAINING:
-Give actual training techniques. Positive reinforcement always. Specific commands, how to teach them, common problems and solutions. For professional training give Google Maps trainer link.
-Puppy classes, basic obedience, behavioral issues - cover all of it.
-
-BREED INFORMATION:
-Know every breed deeply. Common health issues, temperament, exercise needs, lifespan, size, grooming needs, good with kids/pets.
-For DNA testing recommend Embark: [Get Embark DNA Test →](/go/embark/)
-
-WALKING AND BOARDING:
-Recommend WagWalking for daily walks: [Find a Walker →](/go/wagwalking/)
-Recommend Rover for boarding/sitting: [Find a Sitter →](/go/rover/)
-Also give Google Maps local option. Explain the difference between walking, boarding, drop-in visits, and doggy daycare.
-
-ADOPTION AND NEW PETS:
-Walk them through the whole process. What to do day one, week one, month one. Insurance immediately, vet within a week, Embark DNA for rescue dogs, food setup.
-For finding pets: [Search Petfinder →](/go/petfinder/)
-
-NEW PET CHECKLIST (always offer this):
-1. Pet insurance - enroll within 14 days
-2. Vet checkup within first week
-3. DNA test if rescue (Embark)
-4. Food and supplies (Chewy auto-ship)
-5. BarkBox for monthly toys
-[Get BarkBox →](/go/barkbox/)
-
-COSTS - always give real numbers:
-Grooming: $40-100 depending on breed
-Dog walking: $15-25 per 30 min walk
-Boarding: $25-75 per night
-Vet exam: $50-150
-Pet insurance: $30-70/month dogs, $15-40/month cats
-Training class: $100-200 for 6 weeks
-DNA test: $99-199
-Emergency vet: $200-1000+
-
-RESPONSE FORMAT:
-- Answer the question directly first
-- Give specific actionable information
-- Include 1-2 relevant links max
-- Keep it conversational not listy
-- Under 200 words per response
-- If you need their location to help ask for ZIP code specifically
-- Remember everything they told you about their pet in this conversation
-
-AMAZON AFFILIATE LINKS:
-When a user asks about pet supplies, pet food, toys, grooming products, leashes, carriers, beds, or any physical pet product recommend shopping on Amazon and include this link:
-[Shop Pet Supplies on Amazon](https://www.amazon.com/b?node=2619533011&linkCode=ll2&tag=elitemediag00-20&linkId=1ce76b3f94982ccbe37e07bab49028f8&language=en_US&ref_=as_li_ss_tl)
-Use natural language like: "You can find a great selection of [product type] on Amazon \u2014" then include the link.
-Only include the link when it is genuinely relevant to what the user is asking about. Do not force it into every response.
-
-EMAIL CAPTURE:
-After you have answered the user's question and they seem satisfied, naturally offer to send them relevant updates. Use language like: "Want me to keep you updated with pet care tips and local resources for your area? You can sign up free at the bottom of any page on PetsInMyCity — we send pet care tips, local deals, and updates relevant to pet owners in your city. No spam, unsubscribe anytime."
-Only offer this ONCE per conversation and only after you have genuinely helped them with their question. Do not lead with it or use it as an opener. It should feel like a natural helpful suggestion, not a sales pitch.
-Good moment to offer:
-- After answering a health question
-- After recommending a service
-- After helping with insurance
-- After a lost pet question
-- After breed recommendations
-Bad moment to offer:
-- As the opening message
-- Before answering their question
-- If they seem upset or in a hurry
-- If they are dealing with an emergency
-`;
-
+const ENDPOINT = 'lucy-chat';
+const MAX_BODY_BYTES = 16 * 1024;
+const MAX_MESSAGES = 30;
+const MAX_MESSAGE_CHARS = 4000;
 const MODEL = process.env.LUCY_MODEL || 'claude-sonnet-4-5';
 const MAX_TOKENS = 1000;
+const UPSTREAM_TIMEOUT_MS = 25000;
 
-exports.handler = async function (event) {
-  const cors = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
+function limits(env) {
+  return {
+    client: [
+      { name: 'minute', windowSeconds: 60, max: rateLimit.envLimit(env, 'LUCY_CLIENT_PER_MIN', 8) },
+      { name: 'hour', windowSeconds: 3600, max: rateLimit.envLimit(env, 'LUCY_CLIENT_PER_HOUR', 60) },
+      { name: 'day', windowSeconds: 86400, max: rateLimit.envLimit(env, 'LUCY_CLIENT_PER_DAY', 200) },
+    ],
+    global: [
+      { name: 'minute', windowSeconds: 60, max: rateLimit.envLimit(env, 'LUCY_GLOBAL_PER_MIN', 120) },
+      { name: 'day', windowSeconds: 86400, max: rateLimit.envLimit(env, 'LUCY_GLOBAL_PER_DAY', 5000) },
+    ],
   };
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers: cors, body: '' };
+}
+
+/**
+ * Validate the conversation array.
+ *
+ * Only `user` and `assistant` roles are accepted, only string content, and the
+ * array is capped at MAX_MESSAGES entries of MAX_MESSAGE_CHARS each - both to
+ * bound the paid token spend and to stop a caller stuffing an arbitrary
+ * document through our key.
+ */
+function readMessages(body) {
+  if (!Array.isArray(body.messages)) return { ok: false, reason: 'messages_not_array' };
+  if (body.messages.length === 0) return { ok: false, reason: 'messages_empty' };
+  if (body.messages.length > 200) return { ok: false, reason: 'messages_too_many' };
+
+  const out = [];
+  for (const raw of body.messages.slice(-MAX_MESSAGES)) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, reason: 'message_not_object' };
+    if (raw.role !== 'user' && raw.role !== 'assistant') return { ok: false, reason: 'bad_role' };
+    if (typeof raw.content !== 'string') return { ok: false, reason: 'content_not_string' };
+    const content = validate.boundedString(raw.content, { min: 1, max: MAX_MESSAGE_CHARS, maxRaw: MAX_MESSAGE_CHARS * 2 });
+    if (!content.ok) {
+      // An empty assistant turn is dropped rather than rejected: the widget can
+      // produce one after a failed request.
+      if (content.reason === 'too_short') continue;
+      return { ok: false, reason: 'content_' + content.reason };
+    }
+    out.push({ role: raw.role, content: content.value });
   }
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers: cors, body: 'Method Not Allowed' };
-  }
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return {
-      statusCode: 500,
-      headers: Object.assign({ 'Content-Type': 'application/json' }, cors),
-      body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured on the server. Set it in Netlify dashboard > Site settings > Environment variables.' })
-    };
-  }
-  let body;
-  try { body = JSON.parse(event.body || '{}'); } catch (e) {
-    return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
-  const messages = Array.isArray(body.messages) ? body.messages : null;
-  if (!messages || !messages.length) {
-    return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'messages array required' }) };
-  }
-  // Light sanitization: cap to last 30 messages and trim each user/assistant text to 4000 chars
-  const trimmed = messages.slice(-30).map(function (m) {
-    const role = (m.role === 'assistant') ? 'assistant' : 'user';
-    const content = typeof m.content === 'string' ? m.content.slice(0, 4000) : '';
-    return { role: role, content: content };
-  }).filter(function (m) { return m.content.length > 0; });
+  if (!out.length) return { ok: false, reason: 'messages_empty' };
+  if (out[out.length - 1].role !== 'user') return { ok: false, reason: 'last_message_not_user' };
+  return { ok: true, value: out };
+}
+
+/** Optional ZIP hint used only to anchor the emergency search link. */
+function readZipHint(body) {
+  if (body.zip == null) return null;
+  const zip = validate.usZip(body.zip);
+  return zip.ok ? zip.value : null;
+}
+
+async function callAnthropic(apiKey, messages) {
   const payload = JSON.stringify({
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: SYSTEM_PROMPT,
-    messages: trimmed
+    messages: messages,
   });
-  const result = await new Promise(function (resolve) {
-    const req = https.request({
-      hostname: 'api.anthropic.com',
-      path: '/v1/messages',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'Content-Length': Buffer.byteLength(payload)
-      },
-      timeout: 30000
-    }, function (res) {
-      let data = '';
-      res.on('data', function (c) { data += c; });
-      res.on('end', function () { resolve({ status: res.statusCode, body: data }); });
-    });
-    req.on('error', function (err) { resolve({ status: 502, body: JSON.stringify({ error: 'Upstream error: ' + err.message }) }); });
-    req.on('timeout', function () { req.destroy(); resolve({ status: 504, body: JSON.stringify({ error: 'Upstream timeout' }) }); });
-    req.write(payload);
-    req.end();
-  });
-  let text = '';
-  try {
-    const parsed = JSON.parse(result.body);
-    if (result.status >= 200 && result.status < 300 && parsed.content && parsed.content[0] && parsed.content[0].text) {
-      text = parsed.content[0].text;
-    } else if (parsed.error && parsed.error.message) {
-      text = '';
-      return {
-        statusCode: result.status,
-        headers: Object.assign({ 'Content-Type': 'application/json' }, cors),
-        body: JSON.stringify({ error: parsed.error.message })
-      };
-    }
-  } catch (e) {
-    return {
-      statusCode: 502,
-      headers: Object.assign({ 'Content-Type': 'application/json' }, cors),
-      body: JSON.stringify({ error: 'Bad upstream response' })
-    };
+
+  const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: payload,
+  }, UPSTREAM_TIMEOUT_MS);
+
+  if (!res.ok) {
+    // The provider body is read but never returned to the browser.
+    return { ok: false, code: res.status === 429 ? 'rate_limited' : 'upstream_unavailable', httpStatus: res.status };
   }
-  return {
-    statusCode: 200,
-    headers: Object.assign({ 'Content-Type': 'application/json' }, cors),
-    body: JSON.stringify({ reply: text })
-  };
+  let data;
+  try {
+    data = await res.json();
+  } catch (_) {
+    return { ok: false, code: 'upstream_unavailable' };
+  }
+  const block = data && Array.isArray(data.content) ? data.content.find(function (c) { return c && c.type === 'text'; }) : null;
+  const text = block && typeof block.text === 'string' ? block.text : '';
+  if (!text) return { ok: false, code: 'upstream_unavailable' };
+  return { ok: true, text: text };
+}
+
+exports.handler = async function handler(event) {
+  const env = process.env;
+  const corsResult = cors.evaluate(event, env);
+
+  if (!corsResult.allowed) {
+    log.emit({ endpoint: ENDPOINT, outcome: 'origin_rejected', status: 403 });
+    return errorResponse('origin_not_allowed', corsResult.headers);
+  }
+
+  const checked = guard.guard(event, { maxBodyBytes: MAX_BODY_BYTES });
+  if (checked.preflight) return { statusCode: 204, headers: corsResult.headers, body: '' };
+  if (checked.error) {
+    log.emit({ endpoint: ENDPOINT, outcome: checked.error });
+    return errorResponse(checked.error, corsResult.headers);
+  }
+
+  const messages = readMessages(checked.body);
+  if (!messages.ok) {
+    log.emit({ endpoint: ENDPOINT, outcome: 'invalid_request', reason: messages.reason });
+    return errorResponse('invalid_request', corsResult.headers);
+  }
+
+  const lastUserText = messages.value[messages.value.length - 1].content;
+  const zipHint = readZipHint(checked.body);
+
+  /* ---------------------------------------------------------------- *
+   * DETERMINISTIC SAFETY LAYER - runs before the model call.
+   * A red flag is answered here and now. No network round-trip, so the
+   * emergency advice is never delayed, and no model output exists that
+   * could contradict it.
+   * ---------------------------------------------------------------- */
+  const classification = safety.classify(lastUserText);
+  if (classification.emergency) {
+    const emergency = safety.buildEmergencyResponse(classification, { zip: zipHint });
+    log.emit({
+      endpoint: ENDPOINT, outcome: 'safety_emergency', status: 200,
+      category: classification.categories.map(function (c) { return c.id; }).join('+'),
+    });
+    return jsonResponse(200, { ok: true, reply: emergency.text, safety: emergency }, corsResult.headers);
+  }
+
+  const refused = safety.refusedTopic(lastUserText);
+  if (refused) {
+    const advisory = safety.buildAdvisory(classification);
+    log.emit({ endpoint: ENDPOINT, outcome: 'safety_refused', status: 200, category: refused.id });
+    return jsonResponse(200, {
+      ok: true,
+      reply: refused.response + '\n\n_' + advisory.disclaimer + '_',
+      safety: advisory,
+    }, corsResult.headers);
+  }
+
+  const apiKey = env.ANTHROPIC_API_KEY;
+  if (typeof apiKey !== 'string' || apiKey.trim().length < 10) {
+    log.emit({ endpoint: ENDPOINT, outcome: 'missing_configuration', status: 503 });
+    return errorResponse('service_unavailable', corsResult.headers);
+  }
+
+  const rules = limits(env);
+  const globalCheck = await rateLimit.consume({
+    endpoint: ENDPOINT, scope: 'global', identifier: 'all', rules: rules.global, env: env,
+  });
+  if (!globalCheck.allowed) {
+    log.emit({ endpoint: ENDPOINT, outcome: 'rate_limited', limit_scope: 'global', status: 429 });
+    return errorResponse('rate_limited',
+      Object.assign({ 'Retry-After': String(globalCheck.retryAfterSeconds) }, corsResult.headers),
+      { retry_after_seconds: globalCheck.retryAfterSeconds });
+  }
+  const clientCheck = await rateLimit.consume({
+    endpoint: ENDPOINT, scope: 'client', identifier: guard.clientKey(event, env), rules: rules.client, env: env,
+  });
+  if (!clientCheck.allowed) {
+    log.emit({ endpoint: ENDPOINT, outcome: 'rate_limited', limit_scope: 'client', status: 429 });
+    return errorResponse('rate_limited',
+      Object.assign({ 'Retry-After': String(clientCheck.retryAfterSeconds) }, corsResult.headers),
+      { retry_after_seconds: clientCheck.retryAfterSeconds });
+  }
+
+  try {
+    const result = await callAnthropic(apiKey, messages.value);
+    if (!result.ok) {
+      log.emit({ endpoint: ENDPOINT, outcome: result.code, upstream_status: result.httpStatus });
+      return errorResponse(result.code, corsResult.headers);
+    }
+    log.emit({ endpoint: ENDPOINT, outcome: 'ok', status: 200 });
+    // The advisory envelope is attached server-side, after the model call, so a
+    // prompt-injected reply cannot strip the disclaimer or the emergency path.
+    return jsonResponse(200, {
+      ok: true,
+      reply: result.text,
+      safety: safety.buildAdvisory(classification),
+    }, corsResult.headers);
+  } catch (err) {
+    const timedOut = err instanceof UpstreamTimeoutError || (err && err.timeout === true);
+    log.emit({ endpoint: ENDPOINT, outcome: timedOut ? 'upstream_timeout' : 'upstream_error', error_class: log.errorClass(err) });
+    return errorResponse(timedOut ? 'upstream_timeout' : 'upstream_unavailable', corsResult.headers);
+  }
 };
+
+exports._internal = { readMessages, readZipHint, limits, MAX_BODY_BYTES };
