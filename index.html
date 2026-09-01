@@ -503,8 +503,15 @@
 </script>
 
 <div id="site-footer"></div>
+<script src="/assets/safe-markdown.js"></script>
 <script>
 (function() {
+  // Local pet-service search.
+  //
+  // Results come from Google Places via /.netlify/functions/places-search. That
+  // is third-party content, so it is built with DOM nodes and textContent - it
+  // is never concatenated into an HTML string - and every link is validated
+  // through PIMCSafeMarkdown.isAllowedUrl before an <a> is created.
   var btn = document.getElementById('zip-search-btn');
   var input = document.getElementById('zip-search-input');
   var resultsDiv = document.getElementById('zip-search-results');
@@ -517,45 +524,141 @@
       anchor.appendChild(resultsDiv);
     }
   }
+  resultsDiv.setAttribute('role', 'status');
+  resultsDiv.setAttribute('aria-live', 'polite');
+
+  function clear(el) { while (el.firstChild) { el.removeChild(el.firstChild); } }
+
+  function message(text, tone) {
+    clear(resultsDiv);
+    var p = document.createElement('p');
+    p.style.cssText = 'text-align:center;font-family:Inter,sans-serif;color:' +
+      (tone === 'error' ? '#ef4444' : '#92400e');
+    p.textContent = text;
+    resultsDiv.appendChild(p);
+  }
+
+  function safeLink(href) {
+    if (!window.PIMCSafeMarkdown) { return null; }
+    return window.PIMCSafeMarkdown.isAllowedUrl(href);
+  }
+
+  function card(place) {
+    var checked = place.maps_url ? safeLink(place.maps_url) : null;
+    var box = document.createElement(checked ? 'a' : 'div');
+    box.style.cssText = 'display:block;background:white;border:1.5px solid #fde68a;border-radius:12px;padding:16px;text-decoration:none';
+    if (checked) {
+      box.setAttribute('href', checked.href);
+      box.setAttribute('target', '_blank');
+      box.setAttribute('rel', 'noopener noreferrer');
+    }
+    var h3 = document.createElement('h3');
+    h3.style.cssText = 'font-family:Inter,sans-serif;font-weight:700;font-size:0.95rem;color:#1a1a1a;margin:0 0 6px';
+    h3.textContent = place.name || '';
+    box.appendChild(h3);
+
+    if (place.address) {
+      var addr = document.createElement('p');
+      addr.style.cssText = 'font-family:Inter,sans-serif;font-size:0.82rem;color:#6b7280;margin:0 0 6px';
+      addr.textContent = place.address;
+      box.appendChild(addr);
+    }
+    if (typeof place.rating === 'number') {
+      var rating = document.createElement('p');
+      rating.style.cssText = 'font-family:Inter,sans-serif;font-size:0.82rem;color:#f59e0b;margin:0 0 6px';
+      rating.textContent = '★ ' + place.rating + ' (' + (place.total_ratings || 0) + ' reviews)';
+      box.appendChild(rating);
+    }
+    if (place.open_now === true || place.open_now === false) {
+      var open = document.createElement('p');
+      open.style.cssText = 'font-family:Inter,sans-serif;font-size:0.78rem;font-weight:600;margin:0;color:' +
+        (place.open_now ? '#10b981' : '#ef4444');
+      open.textContent = place.open_now ? '● Open now' : '● Closed';
+      box.appendChild(open);
+    }
+    return box;
+  }
+
+  function renderResults(data) {
+    clear(resultsDiv);
+    var head = document.createElement('div');
+    head.style.marginBottom = '16px';
+    var h2 = document.createElement('h2');
+    h2.style.cssText = 'font-family:Inter,sans-serif;font-weight:800;font-size:1.4rem;color:#1a1a1a;text-align:center';
+    h2.textContent = (data.category_label || 'Pet services') + ' near ' + (data.city || 'you');
+    head.appendChild(h2);
+    var sub = document.createElement('p');
+    sub.style.cssText = 'text-align:center;font-family:Inter,sans-serif;color:#6b7280;font-size:0.9rem';
+    sub.textContent = 'Showing top results within about 5 miles';
+    head.appendChild(sub);
+    resultsDiv.appendChild(head);
+
+    if (!data.results || !data.results.length) {
+      var none = document.createElement('p');
+      none.style.cssText = 'text-align:center;font-family:Inter,sans-serif;color:#6b7280';
+      none.textContent = data.message || 'No pet services found nearby. Try a different ZIP code.';
+      resultsDiv.appendChild(none);
+      return;
+    }
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px';
+    data.results.forEach(function(place) { grid.appendChild(card(place)); });
+    resultsDiv.appendChild(grid);
+  }
+
+  function fallbackNotice(data) {
+    clear(resultsDiv);
+    var p = document.createElement('p');
+    p.style.cssText = 'text-align:center;font-family:Inter,sans-serif;color:#92400e';
+    p.textContent = (data && data.fallback && data.fallback.message) ||
+      (data && data.message) ||
+      'We could not run the live search just now. Please try again in a few minutes.';
+    resultsDiv.appendChild(p);
+    var mapsUrl = data && data.fallback && data.fallback.maps_url;
+    var checked = mapsUrl ? safeLink(mapsUrl) : null;
+    if (checked) {
+      var wrap = document.createElement('p');
+      wrap.style.cssText = 'text-align:center;font-family:Inter,sans-serif';
+      var a = document.createElement('a');
+      a.setAttribute('href', checked.href);
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener noreferrer');
+      a.textContent = 'Search on Google Maps';
+      wrap.appendChild(a);
+      resultsDiv.appendChild(wrap);
+    }
+  }
+
+  var busy = false;
   function searchZip() {
+    if (busy) { return; }
     var zip = input ? input.value.trim() : '';
-    if (!zip || zip.length < 5) return;
-    resultsDiv.innerHTML = '<div style="text-align:center;padding:24px;font-family:Inter,sans-serif;color:#92400e">&#128062; Finding pet services near ' + zip + '...</div>';
+    if (!/^\d{5}$/.test(zip)) {
+      message('Please enter a 5-digit US ZIP code.', 'error');
+      if (input) { input.focus(); }
+      return;
+    }
+    busy = true;
+    if (btn) { btn.disabled = true; }
+    message('🐾 Finding veterinarians near ' + zip + '...');
     fetch('/.netlify/functions/places-search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zip: zip, type: 'veterinarian OR pet store OR groomer OR pet boarding' })
+      body: JSON.stringify({ zip: zip, category: 'veterinarian' })
     })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.error) {
-          resultsDiv.innerHTML = '<p style="text-align:center;color:#ef4444;font-family:Inter,sans-serif">Could not find results for that ZIP code. Please try again.</p>';
-          return;
-        }
-        var html = '<div style="margin-bottom:16px"><h2 style="font-family:Inter,sans-serif;font-weight:800;font-size:1.4rem;color:#1a1a1a;text-align:center">Pet Services Near ' + data.city + '</h2><p style="text-align:center;font-family:Inter,sans-serif;color:#6b7280;font-size:0.9rem">Showing top results within 5 miles</p></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">';
-        if (!data.results || data.results.length === 0) {
-          html += '<p style="text-align:center;grid-column:1/-1;font-family:Inter,sans-serif;color:#6b7280">No pet services found nearby. Try a different ZIP.</p>';
-        } else {
-          data.results.forEach(function(place) {
-            var stars = '';
-            if (place.rating) {
-              var full = Math.floor(place.rating);
-              for (var i = 0; i < full; i++) { stars += '&#9733;'; }
-            }
-            html += '<a href="' + place.maps_url + '" target="_blank" rel="noopener" style="display:block;background:white;border:1.5px solid #fde68a;border-radius:12px;padding:16px;text-decoration:none;transition:box-shadow 0.2s" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.1)\'" onmouseout="this.style.boxShadow=\'none\'">' +
-              '<h3 style="font-family:Inter,sans-serif;font-weight:700;font-size:0.95rem;color:#1a1a1a;margin:0 0 6px">' + place.name + '</h3>' +
-              '<p style="font-family:Inter,sans-serif;font-size:0.82rem;color:#6b7280;margin:0 0 6px">&#128205; ' + place.address + '</p>' +
-              (place.rating ? '<p style="font-family:Inter,sans-serif;font-size:0.82rem;color:#f59e0b;margin:0 0 6px">' + stars + ' ' + place.rating + ' (' + place.total_ratings + ' reviews)</p>' : '') +
-              (place.open_now !== undefined ? '<p style="font-family:Inter,sans-serif;font-size:0.78rem;font-weight:600;color:' + (place.open_now ? '#10b981' : '#ef4444') + ';margin:0">' + (place.open_now ? '&#9679; Open now' : '&#9679; Closed') + '</p>' : '') +
-              '</a>';
-          });
-        }
-        html += '</div>';
-        resultsDiv.innerHTML = html;
-        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      .then(function(r) { return r.json().then(function(body) { return { status: r.status, body: body }; }); })
+      .then(function(res) {
+        if (res.status === 429 || (res.body && res.body.error)) { fallbackNotice(res.body); return; }
+        renderResults(res.body || {});
+        // Never let a scroll helper turn a successful search into an error.
+        try { resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
       })
-      .catch(function(err) {
-        resultsDiv.innerHTML = '<p style="text-align:center;color:#ef4444;font-family:Inter,sans-serif">Something went wrong. Please try again.</p>';
+      .catch(function() {
+        message('Something went wrong. Please try again.', 'error');
+      })
+      .then(function() {
+        busy = false;
+        if (btn) { btn.disabled = false; }
       });
   }
   if (btn) { btn.addEventListener('click', searchZip); }

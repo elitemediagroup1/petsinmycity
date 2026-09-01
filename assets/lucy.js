@@ -114,39 +114,49 @@
   var sending = false;
   var pendingLocalSearch = null;
 
-  function escapeHTML(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  /**
+   * Markdown-lite rendering is delegated to assets/safe-markdown.js, which
+   * builds DOM nodes instead of HTML strings and validates every URL with the
+   * URL API against an allow-list. Lucy's replies are model output and can be
+   * steered by whatever a visitor types, so they must never reach innerHTML.
+   *
+   * safe-markdown.js is loaded on demand so a page that only includes lucy.js
+   * still gets the safe path.
+   */
+  function ensureSafeMarkdown(cb) {
+    if (window.PIMCSafeMarkdown) { cb(); return; }
+    var existing = document.getElementById('pimc-safe-markdown-tag');
+    if (existing) { existing.addEventListener('load', cb); return; }
+    var tag = document.createElement('script');
+    tag.id = 'pimc-safe-markdown-tag';
+    tag.src = '/assets/safe-markdown.js';
+    tag.addEventListener('load', cb);
+    tag.addEventListener('error', cb);
+    document.head.appendChild(tag);
   }
-  function renderMarkdownLite(text) {
-    var safe = escapeHTML(text);
-    var links = [];
-    safe = safe.replace(/\[([^\]]+)\]\(([^\s)]+)\)/g, function (m, label, url) {
-      links.push({ label: label, url: url });
-      return '\u0000LINK' + (links.length - 1) + '\u0000';
+
+  /** Render `text` into `element` without ever building an HTML string. */
+  function renderMessageInto(element, text) {
+    if (window.PIMCSafeMarkdown) {
+      window.PIMCSafeMarkdown.renderInto(element, text);
+      return;
+    }
+    // Not loaded yet: show the words as plain text now, upgrade when it lands.
+    element.textContent = String(text == null ? '' : text);
+    ensureSafeMarkdown(function () {
+      if (window.PIMCSafeMarkdown) window.PIMCSafeMarkdown.renderInto(element, text);
     });
-    safe = safe.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
-    safe = '<p>' + safe + '</p>';
-    safe = safe.replace(/\u0000LINK(\d+)\u0000/g, function (m, i) {
-      var l = links[Number(i)];
-      var rel = l.url.indexOf('http') === 0 ? ' rel="sponsored noopener" target="_blank"' : '';
-      return '<a class="lucy-link-btn" href="' + l.url + '"' + rel + ' onclick="window.__lucyTrackLink && window.__lucyTrackLink(\'' + l.url + '\')">' + l.label + ' \u2192</a>';
-    });
-    return safe;
   }
-  window.__lucyTrackLink = function (url) {
-    try { if (window.gtag) window.gtag('event', 'lucy_link_clicked', { url: url }); } catch (e) {}
-  };
 
   // ---- Local-service search (reuses /.netlify/functions/places-search) ----
   var LUCY_LOCAL_CATEGORIES = [
-    { cat: 'emergency vet', type: 'emergency vet', emergency: true, re: /\b(emergency\s*vet|emergency\s*veterinar|er\s*vet|24[\s-]*hour\s*vet|urgent\s*(care\s*)?vet|animal\s*er)/i },
+    { cat: 'emergency vet', type: 'emergency-veterinarian', emergency: true, re: /\b(emergency\s*vet|emergency\s*veterinar|er\s*vet|24[\s-]*hour\s*vet|urgent\s*(care\s*)?vet|animal\s*er)/i },
     { cat: 'veterinarian', type: 'veterinarian', re: /\b(vet|veterinar|animal\s*hospital|animal\s*clinic)/i },
-    { cat: 'pet groomer', type: 'pet groomer', re: /\b(groomer|grooming|groom)/i },
-    { cat: 'dog boarding', type: 'dog boarding', re: /\b(boarding|board\s*my|kennel|overnight\s*(care|stay)|pet\s*hotel|doggy\s*daycare|dog\s*daycare|daycare)/i },
-    { cat: 'dog trainer', type: 'dog trainer', re: /\b(trainer|training|obedience|puppy\s*class)/i },
-    { cat: 'dog park', type: 'dog park', re: /\b(dog\s*park|off[\s-]*leash)/i },
-    { cat: 'animal shelter', type: 'animal shelter', re: /\b(shelter|rescue|humane\s*society|adopt|adoption\s*center|spca)/i },
-    { cat: 'pet store', type: 'pet store', re: /\b(pet\s*store|pet\s*shop|pet\s*supply|pet\s*supplies|pet\s*food\s*store)/i }
+    { cat: 'pet groomer', type: 'grooming', re: /\b(groomer|grooming|groom)/i },
+    { cat: 'dog boarding', type: 'boarding', re: /\b(boarding|board\s*my|kennel|overnight\s*(care|stay)|pet\s*hotel|doggy\s*daycare|dog\s*daycare|daycare)/i },
+    { cat: 'dog trainer', type: 'training', re: /\b(trainer|training|obedience|puppy\s*class)/i },
+        { cat: 'animal shelter', type: 'shelter', re: /\b(shelter|rescue|humane\s*society|adopt|adoption\s*center|spca)/i },
+    { cat: 'pet store', type: 'pet-store', re: /\b(pet\s*store|pet\s*shop|pet\s*supply|pet\s*supplies|pet\s*food\s*store)/i }
   ];
 
   function detectLocalCategory(text) {
@@ -214,12 +224,21 @@
     var locationKey = zip ? 'zip_code' : 'city';
     var locationVal = zip || city;
     showTyping();
-    var body = { zip: zip || city, type: match.type };
+    // The server accepts a 5-digit ZIP or a validated city string, and a
+    // category id from its closed allow-list - never a free-text keyword.
+    var body = zip ? { zip: zip, category: match.type } : { location: city, category: match.type };
     fetch(PLACES_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         hideTyping();
-        if (data && data.error) {
+        if (!data || data.error || data.ok === false) {
+          if (data && data.fallback && data.fallback.message) {
+            var fb = data.fallback.message + ' [Search on Google Maps](' + data.fallback.maps_url + ')';
+            trackLocalSearch(match.cat, locationKey, locationVal, 0);
+            appendBot(fb);
+            conversation.push({ role: 'assistant', content: fb });
+            return;
+          }
           trackLocalSearch(match.cat, locationKey, locationVal, 0);
           appendBot('I couldn\u2019t find that location. Could you double-check the ZIP code or city for me? \u{1F43E}');
           conversation.push({ role: 'assistant', content: 'Could not resolve location for local search.' });
@@ -247,7 +266,20 @@
       });
   }
   // Returns true if the message was handled as a local search (or a prompt for location).
+  /* Routing hint only - NOT a clinical classifier.
+   *
+   * The authoritative red-flag classification lives server-side in
+   * netlify/lib/safety/vet-safety-config.js. This regex exists purely so a
+   * message that sounds urgent is sent to /lucy-chat (where that classifier
+   * runs and answers deterministically) instead of being short-circuited into
+   * a Places lookup. Over-matching here is harmless: it just means the server
+   * decides. */
+  var LUCY_URGENT_HINT = /\b(breath|breathing|choking|gasping|collaps|unconscious|unresponsive|seizure|seizing|convuls|bleeding|blood|poison|toxic|ate\s+(chocolate|xylitol|grapes|raisins|rat\s*poison|antifreeze|a\s+pill|pills|ibuprofen|tylenol|advil)|can'?t\s*(pee|urinate)|hit\s+by\s+a?\s*car|heat\s*stroke|overheat|anaphyla|swollen\s+(face|muzzle|throat)|bloat|retching|dry\s*heav)/i;
+
   function handleLocalIntent(text) {
+    // Anything that sounds urgent goes to the server, which runs the
+    // deterministic veterinary safety layer and answers immediately.
+    if (LUCY_URGENT_HINT.test(text)) return false;
     var zip = extractZip(text);
     var city = extractCity(text);
     var match = detectLocalCategory(text);
@@ -284,7 +316,7 @@
     col.className = 'lucy-col';
     var d = document.createElement('div');
     d.className = 'lucy-msg bot';
-    d.innerHTML = renderMarkdownLite(text);
+    renderMessageInto(d, text);
     col.appendChild(d);
     var t = document.createElement('div');
     t.className = 'lucy-time';
@@ -524,6 +556,22 @@
     try { if (window.pimcTrack) window.pimcTrack('lucy_care_pathway', { path: p.id, emergency: false, providers: (rec.providers||[]).length }); } catch (e) {}
     return true;
   }
+/* Public copy for each stable error code returned by /lucy-chat. The server
+ * never sends a provider message, and we never render one. */
+var LUCY_ERROR_COPY = {
+  rate_limited: 'You have sent quite a few messages in a short time \u{1F43E} Give it a minute and try again.',
+  invalid_request: 'Something about that message did not come through. Try rephrasing it.',
+  payload_too_large: 'That message was a bit long for me. Could you shorten it?',
+  service_unavailable: 'I am temporarily unavailable. Please try again shortly.',
+  upstream_timeout: 'That took too long to come back. Try asking me again.',
+  upstream_unavailable: 'I could not reach my brain just now. Try again in a moment.',
+  origin_not_allowed: 'I could not run from this page.'
+};
+function lucyErrorCopy(code) {
+  var base = LUCY_ERROR_COPY[code] || 'Sorry, I had trouble responding just now.';
+  return base + ' In the meantime you can visit [Pet Insurance](/pet-insurance/) or [Find a Vet](/find-a-vet/) directly.';
+}
+
 async function send(text) {
     if (sending) return;
     text = String(text || '').trim();
@@ -561,11 +609,11 @@ async function send(text) {
       var r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: conversation }) });
       var j = await r.json();
       hideTyping();
-      if (j.reply) {
+      if (j && j.reply) {
         conversation.push({ role: 'assistant', content: j.reply });
         appendBot(j.reply);
       } else {
-        appendBot('Sorry, I had trouble responding just now. ' + (j.error ? ('(' + j.error + ')') : '') + ' Try again in a moment, or visit [Pet Insurance](/pet-insurance/) or [Find a Vet](/find-a-vet/) directly.');
+        appendBot(lucyErrorCopy(j && j.error));
       }
     } catch (e) {
       hideTyping();

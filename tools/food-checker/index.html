@@ -23,6 +23,8 @@
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/script.js" defer></script>
 <script src="/assets/lucy.js" defer></script>
+<script src="/assets/safe-markdown.js"></script>
+<script src="/assets/pet-tools-client.js"></script>
 <style>
 .tool-card{background:#fff;border:1px solid #f0e5ce;border-radius:14px;padding:28px;box-shadow:0 4px 20px rgba(146,64,14,0.06)}
 .tool-label{display:block;font-family:Nunito,sans-serif;font-weight:700;font-size:0.92rem;color:#1a1a1a;margin:14px 0 8px 0}
@@ -85,6 +87,21 @@
         <button type="button" class="tool-toggle" data-toggle="pet" onclick="_toggle('pet',this,'cat')">&#128049; Cat</button>
         <button type="button" class="tool-toggle active" data-toggle="pet" onclick="_toggle('pet',this,'both')">Both</button>
       </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px">
+        <input type="checkbox" id="food-eaten" style="width:auto;margin-top:3px;flex:none">
+        <label for="food-eaten" class="tool-label" style="margin:0;font-weight:400">My pet has already eaten this</label>
+      </div>
+      <label class="tool-label" for="food-qty">Roughly how much? (optional)</label>
+      <div style="display:flex;gap:8px">
+        <input id="food-qty" class="tool-input" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 50" style="flex:1">
+        <select id="food-qty-unit" class="tool-select" aria-label="Amount unit" style="flex:0 0 120px">
+          <option value="g">grams</option>
+          <option value="oz">ounces</option>
+          <option value="lb">pounds</option>
+          <option value="pieces">pieces</option>
+          <option value="cups">cups</option>
+        </select>
+      </div>
       <button id="tool-submit" type="button" class="tool-submit" onclick="runFoodCheck()">Check This Food &#10003;</button>
     </div>
     <div id="tool-result" style="margin-top:24px"></div>
@@ -133,30 +150,6 @@
 
 <script>
 function _el(id){return document.getElementById(id);}
-function _busy(b){var btn=_el('tool-submit');if(!btn)return;if(b){btn.dataset.lbl=btn.textContent;btn.textContent='Thinking...';btn.disabled=true;}else{if(btn.dataset.lbl)btn.textContent=btn.dataset.lbl;btn.disabled=false;}}
-function _esc(s){return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
-function _render(txt){
-  var html=_esc(txt);
-  html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  var lines=html.split('\n');
-  var out=[];var inList=false;
-  for(var i=0;i<lines.length;i++){
-    var ln=lines[i];
-    if(/^\s*[-*]\s+/.test(ln)){
-      if(!inList){out.push('<ul style="margin:0 0 12px 20px;padding:0">');inList=true;}
-      out.push('<li style="margin:4px 0">'+ln.replace(/^\s*[-*]\s+/,'')+'</li>');
-    } else if(/^\s*\d+\.\s+/.test(ln)){
-      if(!inList){out.push('<ol style="margin:0 0 12px 20px;padding:0">');inList='ol';}
-      out.push('<li style="margin:4px 0">'+ln.replace(/^\s*\d+\.\s+/,'')+'</li>');
-    } else {
-      if(inList){out.push(inList==='ol'?'</ol>':'</ul>');inList=false;}
-      if(ln.trim()==='')out.push('');
-      else out.push('<p style="margin:0 0 10px 0">'+ln+'</p>');
-    }
-  }
-  if(inList)out.push(inList==='ol'?'</ol>':'</ul>');
-  return out.join('');
-}
 function _toggle(group,btn,value){
   var els=document.querySelectorAll('[data-toggle="'+group+'"]');
   for(var i=0;i<els.length;i++)els[i].classList.remove('active');
@@ -164,39 +157,41 @@ function _toggle(group,btn,value){
   window['_v_'+group]=value;
 }
 function _getToggle(group,defaultVal){return window['_v_'+group]||defaultVal;}
-function _setResult(html){_el('tool-result').innerHTML=html;}
-function _callTool(toolKey,message,gaEvent,gaParams,onResponse){
-  _busy(true);
-  if(window.gtag&&gaEvent)gtag('event',gaEvent,gaParams||{});
-  fetch('/.netlify/functions/pet-tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tool:toolKey,message:message})})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    _busy(false);
-    var txt='';
-    if(data&&data.content){
-      if(Array.isArray(data.content))txt=data.content.map(function(c){return c.text||'';}).join('\n');
-      else txt=String(data.content);
-    } else if(data&&data.error){txt='Error: '+data.error;}
-    if(onResponse)onResponse(txt);
-    else _setResult('<div class="tool-result-card">'+_render(txt)+'</div>');
-  })
-  .catch(function(){_busy(false);_setResult('<div class="tool-result-card danger">Sorry, something went wrong. Please try again.</div>');});
-}
 
 function runFoodCheck(){
   var food=_el('food-input').value.trim();
-  if(!food){_el('food-input').focus();return;}
+  var result=_el('tool-result');
+  if(!food){PIMCTools.renderError(result,'Please enter a food to check.');_el('food-input').focus();return;}
   var pet=_getToggle('pet','both');
-  var msg='Is '+food+' safe for '+(pet==='both'?'dogs and cats':pet==='dog'?'dogs':'cats')+'? Tell me clearly if it is safe, dangerous, or only safe in moderation, and what symptoms to watch for.';
-  if(window.gtag)gtag('event','food_check_submitted',{food:food,pet_type:pet});
-  _callTool('food-checker',msg,'food_check_submitted',{food:food,pet_type:pet},function(txt){
-    var low=txt.toLowerCase();
-    var cls='tool-result-card';
-    var heading='&#10003; Result';
-    if(/dangerous|toxic|do not feed|never|poisonous|do not give|highly toxic|severely toxic/.test(low)){cls='tool-result-card danger';heading='&#9888;&#65039; Dangerous';if(window.gtag)gtag('event','food_check_result',{result:'unsafe'});}
-    else if(/in moderation|moderation|small amount|small quantity|caution|limit|occasionally/.test(low)){cls='tool-result-card caution';heading='&#9888; Use Caution';if(window.gtag)gtag('event','food_check_result',{result:'moderation'});}
-    else if(/safe|fine|ok|good for|healthy/.test(low)){cls='tool-result-card safe';heading='&#10003; Safe';if(window.gtag)gtag('event','food_check_result',{result:'safe'});}
-    _setResult('<div class="'+cls+'"><h3>'+heading+'</h3>'+_render(txt)+'</div>');
+  var eatenEl=_el('food-eaten');
+  var qtyEl=_el('food-qty');
+  var qty=qtyEl?qtyEl.value:'';
+  PIMCTools.run({
+    tool:'food-checker',
+    toolName:'food_checker',
+    input:{
+      species:pet,
+      food:food,
+      already_eaten:!!(eatenEl&&eatenEl.checked),
+      quantity:qty===''?null:qty,
+      quantity_unit:qty===''?undefined:(_el('food-qty-unit')?_el('food-qty-unit').value:'g')
+    },
+    // No food name is sent to analytics: it can identify a household incident.
+    gaEvent:'food_check_submitted',
+    gaParams:{pet_type:pet},
+    classify:function(txt){
+      var low=String(txt||'').toLowerCase();
+      if(/dangerous|toxic|do not feed|never|poisonous|do not give|highly toxic|severely toxic/.test(low)){
+        PIMCTools.track('food_check_result',{result:'unsafe'});
+        return {cls:'danger',heading:'\u26A0\uFE0F Dangerous'};
+      }
+      if(/in moderation|moderation|small amount|small quantity|caution|limit|occasionally/.test(low)){
+        PIMCTools.track('food_check_result',{result:'moderation'});
+        return {cls:'caution',heading:'\u26A0 Use caution'};
+      }
+      PIMCTools.track('food_check_result',{result:'safe'});
+      return {cls:'safe',heading:'\u2713 Safe'};
+    }
   });
 }
 document.addEventListener('DOMContentLoaded',function(){

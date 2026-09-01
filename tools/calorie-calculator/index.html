@@ -23,6 +23,8 @@
 <link rel="stylesheet" href="/assets/style.css">
 <script src="/assets/script.js" defer></script>
 <script src="/assets/lucy.js" defer></script>
+<script src="/assets/safe-markdown.js"></script>
+<script src="/assets/pet-tools-client.js"></script>
 <style>
 .tool-card{background:#fff;border:1px solid #f0e5ce;border-radius:14px;padding:28px;box-shadow:0 4px 20px rgba(146,64,14,0.06)}
 .tool-label{display:block;font-family:Nunito,sans-serif;font-weight:700;font-size:0.92rem;color:#1a1a1a;margin:14px 0 8px 0}
@@ -158,27 +160,32 @@
 
 <script>
 function _el(id){return document.getElementById(id);}
-function _busy(b){var btn=_el('tool-submit');if(!btn)return;if(b){btn.dataset.lbl=btn.textContent;btn.textContent='Thinking...';btn.disabled=true;}else{if(btn.dataset.lbl)btn.textContent=btn.dataset.lbl;btn.disabled=false;}}
-function _esc(s){return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
-function _render(txt){var html=_esc(txt);html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');var lines=html.split('\n');var out=[];var inList=false;for(var i=0;i<lines.length;i++){var ln=lines[i];if(/^\s*[-*]\s+/.test(ln)){if(!inList){out.push('<ul style="margin:0 0 12px 20px;padding:0">');inList=true;}out.push('<li style="margin:4px 0">'+ln.replace(/^\s*[-*]\s+/,'')+'</li>');}else if(/^\s*\d+\.\s+/.test(ln)){if(!inList){out.push('<ol style="margin:0 0 12px 20px;padding:0">');inList='ol';}out.push('<li style="margin:4px 0">'+ln.replace(/^\s*\d+\.\s+/,'')+'</li>');}else{if(inList){out.push(inList==='ol'?'</ol>':'</ul>');inList=false;}if(ln.trim()==='')out.push('');else out.push('<p style="margin:0 0 10px 0">'+ln+'</p>');}}if(inList)out.push(inList==='ol'?'</ol>':'</ul>');return out.join('');}
 function _toggle(group,btn,value){var els=document.querySelectorAll('[data-toggle="'+group+'"]');for(var i=0;i<els.length;i++)els[i].classList.remove('active');btn.classList.add('active');window['_v_'+group]=value;}
 function _getToggle(group,defaultVal){return window['_v_'+group]||defaultVal;}
-function _setResult(html){_el('tool-result').innerHTML=html;}
-function _callTool(toolKey,message,gaEvent,gaParams,onResponse){_busy(true);if(window.gtag&&gaEvent)gtag('event',gaEvent,gaParams||{});fetch('/.netlify/functions/pet-tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tool:toolKey,message:message})}).then(function(r){return r.json();}).then(function(data){_busy(false);var txt='';if(data&&data.content){if(Array.isArray(data.content))txt=data.content.map(function(c){return c.text||'';}).join('\n');else txt=String(data.content);}else if(data&&data.error){txt='Error: '+data.error;}if(onResponse)onResponse(txt);else _setResult('<div class="tool-result-card">'+_render(txt)+'</div>');}).catch(function(){_busy(false);_setResult('<div class="tool-result-card danger">Sorry, something went wrong. Please try again.</div>');});}
 
 function runCalorie(){
-  var name=_el('pet-name').value.trim()||'my pet';
+  var result=_el('tool-result');
   var weight=_el('pet-weight').value;
-  if(!weight){_el('pet-weight').focus();return;}
-  var unit=_getToggle('unit','lb');
-  var age=_el('pet-age').value;
-  var ageunit=_getToggle('ageunit','years');
-  var activity=_el('activity').value.replace(/_/g,' ');
-  var spayed=_getToggle('spayed','yes');
-  var body=_el('body').value;
+  if(weight===''){PIMCTools.renderError(result,'Please enter your pet\u2019s weight.');_el('pet-weight').focus();return;}
   var pet=_getToggle('pet','dog');
-  var msg='Calculate daily calorie needs for '+name+', a '+pet+'. Weight: '+weight+' '+unit+'. Age: '+(age||'unknown')+' '+ageunit+'. Activity level: '+activity+'. Spayed/neutered: '+spayed+'. Body condition: '+body+'. Provide daily calorie target, cups of dry food (assume 350 cal/cup), feeding frequency, and any weight-management tips.';
-  _callTool('calorie-calculator',msg,'calorie_calculation_run',{pet_type:pet,activity:activity});
+  var age=_el('pet-age').value;
+  PIMCTools.run({
+    tool:'calorie-calculator',
+    toolName:'calorie_calculator',
+    input:{
+      name:_el('pet-name').value.trim()||undefined,
+      species:pet,
+      weight:weight,
+      weight_unit:_getToggle('unit','lb'),
+      age:age===''?null:age,
+      age_unit:_getToggle('ageunit','years'),
+      activity:_el('activity').value,
+      spayed:_getToggle('spayed','yes'),
+      body_condition:_el('body').value
+    },
+    gaEvent:'calorie_calculation_run',
+    gaParams:{pet_type:pet,activity:_el('activity').value}
+  });
 }
 </script>
 

@@ -1,0 +1,48 @@
+name: security-and-function-tests
+
+# Security, safety and server-function tests for the public Netlify Functions
+# and the browser scripts that talk to them.
+#
+# NO secrets are required. Every upstream call (Anthropic, Google, IndexNow) is
+# stubbed in-process, rate limiting runs on the in-memory backend, and no URL is
+# ever submitted to IndexNow.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    paths:
+      - 'netlify/**'
+      - 'assets/**'
+      - 'cities/**'
+      - 'tools/**'
+      - 'index.html'
+      - 'lucy/**'
+      - 'test/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'netlify.toml'
+      - '.github/workflows/security-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies (from the committed lockfile)
+        run: npm ci
+
+      - name: Syntax check (all .js files and every inline <script>)
+        run: npm run check:syntax
+
+      - name: Security and function tests
+        run: npm test

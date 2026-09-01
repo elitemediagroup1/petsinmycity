@@ -129,13 +129,37 @@
     <h2>Find a Vet in Chicago</h2>
     <p class="section-sub">Chicago has hundreds of veterinary practices across the city and suburbs. Tell us your neighborhood and we&#39;ll connect you with a licensed vet near you.</p>
     <div class="lead-form-section" style="margin-top:28px;border-radius:var(--radius);padding:32px">
-      <form onsubmit="return submitVetForm(event)" style="max-width:480px;margin:0 auto">
-        <input type="text" id="vet-name" placeholder="Your name">
-        <input type="tel" id="vet-phone" placeholder="Your phone number">
-        <input type="text" id="vet-zip" placeholder="Your ZIP code">
-        <select id="vet-pet"><option value="">Select pet type</option><option value="dog">Dog</option><option value="cat">Cat</option><option value="other">Other</option></select>
+      <form class="vet-form" data-vet-lead novalidate style="max-width:480px;margin:0 auto">
+        <label for="vet-name">Your name <span class="vet-required" aria-hidden="true">*</span></label>
+        <input type="text" id="vet-name" name="name" autocomplete="name" required aria-required="true" aria-describedby="vet-name-error" placeholder="Your name">
+        <p class="vet-field-error" id="vet-name-error"></p>
+
+        <label for="vet-phone">Phone number <span class="vet-required" aria-hidden="true">*</span></label>
+        <input type="tel" id="vet-phone" name="phone" autocomplete="tel" inputmode="tel" required aria-required="true" aria-describedby="vet-phone-error" placeholder="(555) 123-4567">
+        <p class="vet-field-error" id="vet-phone-error"></p>
+
+        <label for="vet-zip">ZIP code <span class="vet-required" aria-hidden="true">*</span></label>
+        <input type="text" id="vet-zip" name="zip" autocomplete="postal-code" inputmode="numeric" maxlength="10" required aria-required="true" aria-describedby="vet-zip-error" placeholder="60601">
+        <p class="vet-field-error" id="vet-zip-error"></p>
+
+        <label for="vet-pet">Pet type <span class="vet-required" aria-hidden="true">*</span></label>
+        <select id="vet-pet" name="pet_type" required aria-required="true" aria-describedby="vet-pet-error">
+          <option value="">Select pet type</option>
+          <option value="dog">Dog</option>
+          <option value="cat">Cat</option>
+          <option value="other">Other</option>
+        </select>
+        <p class="vet-field-error" id="vet-pet-error"></p>
+
+        <div class="vet-consent">
+          <input type="checkbox" id="vet-consent" name="consent" required aria-required="true" aria-describedby="vet-consent-error">
+          <label for="vet-consent">I agree that Elite Media Group LLC may contact me by phone call or email about finding local veterinary care, and may share the details above with veterinary practices near my ZIP code. I can ask to be removed at any time by emailing help@elitemediagroup.io. See our <a href="/privacy/">Privacy Policy</a>.</label>
+        </div>
+        <p class="vet-field-error" id="vet-consent-error"></p>
+
         <button type="submit">Find Chicago Vets &rarr;</button>
-        <p class="privacy-note">Your information is never sold or shared. Elite Media Group LLC respects your privacy.</p>
+        <div class="vet-status" role="status" aria-live="polite"></div>
+        <p class="privacy-note">We do not sell your information. We use it only to help you find local veterinary care. Read our <a href="/privacy/">Privacy Policy</a>.</p>
       </form>
     </div>
   </div>
